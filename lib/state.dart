@@ -33,8 +33,8 @@ class State {
     scopes.add(Scope());
   }
 
-  void popScope() {
-    scopes.removeLast();
+  Scope popScope() {
+    return scopes.removeLast();
   }
 }
 

@@ -3,7 +3,7 @@ import 'package:rational/rational.dart';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
 
-BlockExpr parse(String input) {
+ScopelessBlockExpr parse(String input) {
   final parser = createParser();
   final result = parser.parse(input);
   return switch (result) {
@@ -13,13 +13,15 @@ BlockExpr parse(String input) {
   };
 }
 
-Parser<Token<BlockExpr>> createParser() {
+Parser<Token<ScopelessBlockExpr>> createParser() {
   final builder = ExpressionBuilder<Token<Expr>>();
 
   final expr = builder.loopback;
 
-  final lines = expr.plusSeparated(char(';')).token().mapToken(
-        (token) => BlockExpr(token.value.elements.map((e) => e.value).toList()),
+  final lines = expr.starSeparated(char(';')).token().mapToken(
+        (token) => ScopelessBlockExpr(
+          token.value.elements.map((e) => e.value).toList(),
+        ),
       );
 
   final integer = digit().plus().flatten().token().trim().mapToken(
@@ -55,7 +57,13 @@ Parser<Token<BlockExpr>> createParser() {
   // value[2] as Expr,
   // );
   // });
-  final block = (char('{') & lines & char('}'))
+  final block = (char('{') &
+          expr.starSeparated(char(';')).token().mapToken(
+                (token) => BlockExpr(
+                  token.value.elements.map((e) => e.value).toList(),
+                ),
+              ) &
+          char('}'))
       .pick(1)
       .cast<Token<BlockExpr>>()
       .value()
@@ -70,9 +78,32 @@ Parser<Token<BlockExpr>> createParser() {
   builder.primitive(block);
 
   builder.group().wrapper(
-        char('('),
-        char(')'),
+        Tokens.openParen,
+        Tokens.closeParen,
         (left, value, right) => value,
+      );
+
+  builder.group().wrapper(
+    Tokens.openBracket.token(),
+    Tokens.closeBracket.token(),
+    (left, middle, right) {
+      final exprs = switch (middle.value) {
+        SequenceExpr(:final exprs) => exprs,
+        final expr => [expr],
+      };
+      return Token(
+        ListExpr(exprs),
+        left.buffer + middle.buffer + right.buffer,
+        left.start,
+        right.stop,
+      );
+    },
+  );
+
+  // Property access
+  builder.group().right(
+        Tokens.dot,
+        OperatorExpr.fromToken(Operator.getProperty),
       );
 
   builder.group()
@@ -86,7 +117,7 @@ Parser<Token<BlockExpr>> createParser() {
       ),
     )
     ..prefix(
-      Tokens.exclaim.token(),
+      Tokens.exclaimark.token(),
       (op, a) => Token(
         UnaryExpr(UnaryOperator.not, a.value),
         op.buffer + a.buffer,
@@ -127,18 +158,10 @@ Parser<Token<BlockExpr>> createParser() {
 
   builder.group().left(Tokens.or, OperatorExpr.fromToken(Operator.or));
 
-  builder
-      .group()
-      // ..postfix(
-      // (char('(') & expr & char(')'))
-      // .pick(1)
-      // .cast<Token<Expr>>()
-      // .value()
-      // .token(),
-      // FunCallExpr.fromToken,
-      // )
-      .postfix(expr, SequencialExpr.fromToken);
+  // Function call
+  builder.group().right(string('').token(), SequencialExpr.fromToken);
 
+  // Sequence
   builder.group().left(Tokens.comma, (left, op, right) {
     final expr = switch (left.value) {
       SequenceExpr(:final exprs) => SequenceExpr([...exprs, right.value]),
@@ -147,10 +170,27 @@ Parser<Token<BlockExpr>> createParser() {
     return Token(expr, left.buffer, left.start, right.stop);
   });
 
+  // Function definition
   builder.group().right(
         Tokens.funCreate,
         OperatorExpr.fromToken(Operator.funCreate),
       );
+
+  // Ternary
+  builder.group().postfix(
+    (Tokens.questionmark & expr & (Tokens.colon & expr).pick(1).optional())
+        .token(),
+    (left, post) {
+      final tokenTrue = post.value[1] as Token<Expr>;
+      final tokenFalse = post.value[2] as Token<Expr>?;
+      return Token(
+        TernaryExpr(left.value, tokenTrue.value, tokenFalse?.value),
+        left.buffer + post.buffer,
+        left.start,
+        post.stop,
+      );
+    },
+  );
 
   builder.group().right(
         Tokens.assign,
@@ -198,10 +238,14 @@ class Tokens {
   static final closeBracket = char(']').trim();
 
   static final semicolon = char(';').trim();
+  static final colon = char(':').trim();
 
   static final funCreate = string('=>').trim();
 
-  static final exclaim = char('!').trim();
+  static final exclaimark = char('!').trim();
+  static final questionmark = char('?').trim();
+
+  static final dot = char('.').trim();
 }
 
 extension MapTokenParser<T1> on Parser<Token<T1>> {

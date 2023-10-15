@@ -94,8 +94,8 @@ class ArgumentNumberError extends MyError {
   }
 }
 
-class TypeError extends MyError {
-  const TypeError(this.expected, this.got) : super(0);
+class IncorrectTypeError extends MyError {
+  const IncorrectTypeError(this.expected, this.got) : super(0);
   final String expected;
   final String got;
 
@@ -131,5 +131,20 @@ class TacError extends MyError {
   @override
   String toPrettyString() {
     return 'Uncaught $value';
+  }
+}
+
+class PropertyAccessError extends MyError {
+  const PropertyAccessError(this.value, this.property) : super(0);
+  final Value value;
+  final String property;
+
+  @override
+  String toString() => 'PropertyAccessError($value, $property)';
+
+  @override
+  String toPrettyString() {
+    return 'PropertyAccessError: Cannot access property "$property" '
+        'on value "${value.toPrettyString()}".';
   }
 }

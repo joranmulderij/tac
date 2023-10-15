@@ -89,11 +89,13 @@ class OperatorExpr extends Expr {
         Operator.gte => leftValue().gte(rightValue()),
         Operator.assign => _assign(state, left, rightValue()),
         Operator.pipe => throw UnimplementedError(),
-        Operator.funCreate => _funCreate(state, left, right),
+        Operator.funCreate => _funCreate(left, right),
         Operator.and => throw UnimplementedError(),
         Operator.or => throw UnimplementedError(),
+        Operator.getProperty => _getProperty(leftValue(), right),
       };
     } on BinaryOperatorTypeError catch (e) {
+      print(e);
       throw ErrorWithPositions(e, start, stop);
     }
   }
@@ -107,7 +109,7 @@ class OperatorExpr extends Expr {
     }
   }
 
-  Value _funCreate(State state, Expr left, Expr right) {
+  Value _funCreate(Expr left, Expr right) {
     final args = switch (left) {
       VariableExpr(:final name) => [name],
       SequenceExpr(:final exprs) => exprs
@@ -123,6 +125,14 @@ class OperatorExpr extends Expr {
       _ => throw ExpectedIdentifierError(left.runtimeType.toString()),
     };
     return FunValue(args, right);
+  }
+
+  Value _getProperty(Value left, Expr right) {
+    final property = switch (right) {
+      VariableExpr(:final name) => name,
+      _ => throw ExpectedIdentifierError(left.runtimeType.toString()),
+    };
+    return left.getProperty(property);
   }
 }
 
@@ -144,6 +154,7 @@ enum Operator {
   funCreate,
   and,
   or,
+  getProperty,
 }
 
 class UnaryExpr extends Expr {
@@ -174,15 +185,34 @@ enum UnaryOperator {
   print,
 }
 
+class TernaryExpr extends Expr {
+  TernaryExpr(this.condition, this.trueExpr, this.falseExpr);
+  final Expr condition;
+  final Expr trueExpr;
+  final Expr? falseExpr;
+
+  @override
+  Value run(State state) {
+    final conditionValue = condition.run(state);
+    return switch (conditionValue) {
+      BoolValue(:final value) => switch (value) {
+          true => trueExpr.run(state),
+          false => falseExpr?.run(state) ?? const UnknownValue(),
+        },
+      _ => throw Exception('Condition must be a boolean'),
+    };
+  }
+}
+
 class SequencialExpr extends Expr {
   SequencialExpr(this.left, this.right);
   final Expr left;
   final Expr right;
 
-  static Token<SequencialExpr> Function(Token<Expr>, Token<Expr>) fromToken =
-      (left, right) => Token(
+  static Token<SequencialExpr> Function(Token<Expr>, Token<String>, Token<Expr>)
+      fromToken = (left, op, right) => Token(
             SequencialExpr(left.value, right.value),
-            left.buffer + right.buffer,
+            left.buffer + op.buffer + right.buffer,
             left.start,
             right.stop,
           );
@@ -214,8 +244,8 @@ class SequencialExpr extends Expr {
   }
 }
 
-class BlockExpr extends Expr {
-  BlockExpr(this.exprs);
+class ScopelessBlockExpr extends Expr {
+  ScopelessBlockExpr(this.exprs);
   final List<Expr> exprs;
 
   @override
@@ -225,6 +255,21 @@ class BlockExpr extends Expr {
       result = expr.run(state);
     }
     return result ?? const UnknownValue();
+  }
+}
+
+class BlockExpr extends Expr {
+  BlockExpr(this.exprs);
+  final List<Expr> exprs;
+
+  @override
+  Value run(State state) {
+    state.pushScope();
+    for (final expr in exprs) {
+      expr.run(state);
+    }
+    final result = state.popScope();
+    return ObjectValue(result.variables);
   }
 }
 
@@ -254,11 +299,10 @@ class ListExpr extends Expr {
 
   @override
   Value run(State state) {
-    throw UnimplementedError();
-    // final values = <Value>[];
-    // for (final expr in exprs) {
-    // values.add(expr.run(state));
-    // }
-    // return ListValue(values);
+    final values = <Value>[];
+    for (final expr in exprs) {
+      values.add(expr.run(state));
+    }
+    return ListValue(values);
   }
 }

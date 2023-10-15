@@ -24,7 +24,7 @@ void runRepl() {
     try {
       final block = parse(input);
       final value = block.run(state);
-      print(_greenPen(' = ${value.toPrettyString()}'));
+      print(_greenPen('  = ${value.toPrettyString()}'));
     } on MyError catch (e) {
       print(_redPen(e.toPrettyString()));
     }

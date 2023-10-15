@@ -12,6 +12,8 @@ part 'string_value.dart';
 part 'unknown_value.dart';
 part 'fun_value.dart';
 part 'sequence_value.dart';
+part 'list_value.dart';
+part 'map_value.dart';
 
 @immutable
 sealed class Value extends Equatable {
@@ -37,6 +39,7 @@ sealed class Value extends Equatable {
   Value call(State state, List<Value> args) => throw NotCallableError(type);
   Value not() => throw UnaryOperatorTypeError('!', type);
   Value neg() => throw UnaryOperatorTypeError('-', type);
+  Value getProperty(String name) => throw PropertyAccessError(this, name);
 
   String get type;
   @override

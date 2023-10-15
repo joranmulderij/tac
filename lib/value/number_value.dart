@@ -7,62 +7,62 @@ class NumberValue extends Value {
   @override
   Value add(Value other) => switch (other) {
         NumberValue(:final value) => NumberValue(this.value + value),
-        _ => other.add(this),
+        _ => super.add(other),
       };
 
   @override
   Value sub(Value other) => switch (other) {
         NumberValue(:final value) => NumberValue(this.value - value),
-        _ => other.add(this),
+        _ => super.sub(other),
       };
 
   @override
   Value mul(Value other) => switch (other) {
         NumberValue(:final value) => NumberValue(this.value * value),
-        _ => other.add(this),
+        _ => super.mul(other),
       };
 
   @override
   Value div(Value other) => switch (other) {
         NumberValue(:final value) => NumberValue(this.value / value),
-        _ => other.add(this),
+        _ => super.div(other),
       };
 
   @override
   Value mod(Value other) => switch (other) {
         NumberValue(:final value) => NumberValue(this.value % value),
-        _ => other.add(this),
+        _ => super.mod(other),
       };
 
   @override
   Value pow(Value other) => switch (other) {
         NumberValue(:final value) =>
           NumberValue(this.value.pow(value.toBigInt().toInt())),
-        _ => other.add(this),
+        _ => super.pow(other),
       };
 
   @override
   Value lt(Value other) => switch (other) {
         NumberValue(:final value) => BoolValue(this.value < value),
-        _ => other.add(this),
+        _ => super.lt(other),
       };
 
   @override
   Value lte(Value other) => switch (other) {
         NumberValue(:final value) => BoolValue(this.value <= value),
-        _ => other.add(this),
+        _ => super.lte(other),
       };
 
   @override
   Value gt(Value other) => switch (other) {
         NumberValue(:final value) => BoolValue(this.value > value),
-        _ => other.add(this),
+        _ => super.gt(other),
       };
 
   @override
   Value gte(Value other) => switch (other) {
         NumberValue(:final value) => BoolValue(this.value >= value),
-        _ => other.add(this),
+        _ => super.gte(other),
       };
 
   @override
