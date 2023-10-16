@@ -95,7 +95,6 @@ class OperatorExpr extends Expr {
         Operator.getProperty => _getProperty(leftValue(), right),
       };
     } on BinaryOperatorTypeError catch (e) {
-      print(e);
       throw ErrorWithPositions(e, start, stop);
     }
   }
@@ -228,9 +227,7 @@ class SequencialExpr extends Expr {
           SequenceValue(values: final values) => values,
           _ => [rightValue],
         };
-        state.pushScope();
         final result = leftValue.call(state, argValues);
-        state.popScope();
         return result;
       case BoolValue(:final value):
         return switch (value) {
@@ -244,31 +241,79 @@ class SequencialExpr extends Expr {
   }
 }
 
-class ScopelessBlockExpr extends Expr {
-  ScopelessBlockExpr(this.exprs);
+class LinesExpr extends Expr {
+  LinesExpr(this.exprs);
   final List<Expr> exprs;
 
   @override
   Value run(State state) {
     Value? result;
-    for (final expr in exprs) {
-      result = expr.run(state);
+    try {
+      for (final expr in exprs) {
+        result = expr.run(state);
+        state.set('_', result);
+      }
+    } on ReturnException catch (e) {
+      return e.value;
     }
     return result ?? const UnknownValue();
   }
 }
 
 class BlockExpr extends Expr {
-  BlockExpr(this.exprs);
-  final List<Expr> exprs;
+  BlockExpr(this.expr);
+  final LinesExpr expr;
 
   @override
   Value run(State state) {
     state.pushScope();
-    for (final expr in exprs) {
-      expr.run(state);
+    final result = expr.run(state);
+    state.popScope();
+    return result;
+  }
+}
+
+class ProtectedBlockExpr extends Expr {
+  ProtectedBlockExpr(this.lines);
+  final LinesExpr lines;
+
+  @override
+  Value run(State state) {
+    state.pushProtectedScope();
+    try {
+      for (final expr in lines.exprs) {
+        state.set('_', expr.run(state));
+      }
+    } on ReturnException catch (e) {
+      state.popScope();
+      return e.value;
     }
     final result = state.popScope();
+    result.variables.remove('_');
+    return ObjectValue(result.variables);
+  }
+}
+
+class BlockedBlockExpr extends Expr {
+  BlockedBlockExpr(this.lines);
+  final LinesExpr lines;
+
+  @override
+  Value run(State state) {
+    state.pushBlockedScope();
+    state.pushScope();
+    try {
+      for (final expr in lines.exprs) {
+        state.set('_', expr.run(state));
+      }
+    } on ReturnException catch (e) {
+      state.popScope();
+      state.popScope();
+      return e.value;
+    }
+    final result = state.popScope();
+    state.popScope();
+    result.variables.remove('_');
     return ObjectValue(result.variables);
   }
 }

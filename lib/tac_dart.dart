@@ -14,16 +14,14 @@ final _greenPen = AnsiPen()..green();
 
 void runRepl() {
   final state = State();
-  state.pushScope();
-  state.loadLibrary(coreLibrary);
-  state.loadLibrary(mathLibrary);
+  state.pushBlockedScope();
   while (true) {
     stdout.write('> ');
     final input = stdin.readLineSync();
     if (input == null) continue;
     try {
-      final block = parse(input);
-      final value = block.run(state);
+      final ast = parse(input);
+      final value = ast.run(state);
       print(_greenPen('  = ${value.toPrettyString()}'));
     } on MyError catch (e) {
       print(_redPen(e.toPrettyString()));

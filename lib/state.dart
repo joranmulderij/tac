@@ -1,4 +1,5 @@
-import 'package:tac_dart/libraries/library.dart';
+import 'package:tac_dart/libraries/core.dart';
+import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/value/value.dart';
 
 class State {
@@ -8,6 +9,8 @@ class State {
     for (final scope in scopes.reversed) {
       if (scope.variables.containsKey(name)) {
         return scope.variables[name]!;
+      } else if (scope.protectionLevel == ScopeProtectionLevel.blocked) {
+        break;
       }
     }
     const unknown = UnknownValue();
@@ -20,17 +23,31 @@ class State {
       if (scope.variables.containsKey(name)) {
         scope.variables[name] = value;
         return;
+      } else if (scope.protectionLevel == ScopeProtectionLevel.protected ||
+          scope.protectionLevel == ScopeProtectionLevel.blocked) {
+        break;
       }
     }
     scopes.last.variables[name] = value;
   }
 
-  void loadLibrary(Library library) {
-    library.load(this);
+  void loadLibrary(Map<String, Value> library) {
+    scopes.last.variables.addAll(library);
   }
 
   void pushScope() {
-    scopes.add(Scope());
+    scopes.add(Scope(ScopeProtectionLevel.none));
+  }
+
+  void pushProtectedScope() {
+    scopes.add(Scope(ScopeProtectionLevel.protected));
+  }
+
+  void pushBlockedScope() {
+    final scope = Scope(ScopeProtectionLevel.blocked);
+    scopes.add(scope);
+    loadLibrary(coreLibrary);
+    loadLibrary(mathLibrary);
   }
 
   Scope popScope() {
@@ -39,5 +56,10 @@ class State {
 }
 
 class Scope {
+  Scope(this.protectionLevel);
+
   final Map<String, Value> variables = {};
+  final ScopeProtectionLevel protectionLevel;
 }
+
+enum ScopeProtectionLevel { none, protected, blocked }

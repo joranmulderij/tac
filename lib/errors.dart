@@ -32,7 +32,7 @@ class SyntaxError extends MyError {
 
   @override
   String toPrettyString() => '  ${' ' * position}^\n'
-      'SyntaxError: $message';
+      'SyntaxError: $message $position';
 }
 
 class UnaryOperatorTypeError extends MyError {
@@ -147,4 +147,22 @@ class PropertyAccessError extends MyError {
     return 'PropertyAccessError: Cannot access property "$property" '
         'on value "${value.toPrettyString()}".';
   }
+}
+
+class PathNotFoundError extends MyError {
+  const PathNotFoundError(this.path) : super(0);
+  final String path;
+
+  @override
+  String toString() => 'PathNotFoundError($path)';
+
+  @override
+  String toPrettyString() {
+    return 'PathNotFoundError: Path "$path" not found.';
+  }
+}
+
+class ReturnException implements Exception {
+  const ReturnException(this.value);
+  final Value value;
 }

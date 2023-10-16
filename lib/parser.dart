@@ -3,7 +3,7 @@ import 'package:rational/rational.dart';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
 
-ScopelessBlockExpr parse(String input) {
+LinesExpr parse(String input) {
   final parser = createParser();
   final result = parser.parse(input);
   return switch (result) {
@@ -13,18 +13,23 @@ ScopelessBlockExpr parse(String input) {
   };
 }
 
-Parser<Token<ScopelessBlockExpr>> createParser() {
+Parser<Token<LinesExpr>> createParser() {
   final builder = ExpressionBuilder<Token<Expr>>();
 
   final expr = builder.loopback;
 
-  final lines = expr.starSeparated(char(';')).token().mapToken(
-        (token) => ScopelessBlockExpr(
-          token.value.elements.map((e) => e.value).toList(),
-        ),
+  final lineSeperator =
+      (char(';') | char('\n') | char('\r')).plus().cast<void>();
+
+  final lines = (expr.starSeparated(lineSeperator) & lineSeperator.optional())
+      .pick(0)
+      .cast<SeparatedList<Token<Expr>, void>>()
+      .token()
+      .mapToken(
+        (token) => LinesExpr(token.value.elements.map((e) => e.value).toList()),
       );
 
-  final integer = digit().plus().flatten().token().trim().mapToken(
+  final integer = digit().plus().flatten().token().trimNoNewline().mapToken(
         (token) => NumberExpr(Rational.parse(token.value)),
       );
   final decimal = (digit().star() & char('.') & digit().plus())
@@ -33,21 +38,21 @@ Parser<Token<ScopelessBlockExpr>> createParser() {
       .mapToken((token) => NumberExpr(Rational.parse(token.value)));
   final integerWithUnit =
       (integer & letter().plus().flatten()).pick(0).cast<Token<Expr>>();
-  final variable = letter()
+  final variable = (letter() | char('_'))
       .plus()
       .flatten()
       .token()
-      .trim()
+      .trimNoNewline()
       .mapToken((token) => VariableExpr(token.value));
   final string1 = (char('"') & any().starLazy(char('"')).flatten() & char('"'))
       .token()
-      .trim()
+      .trimNoNewline()
       .mapToken((token) {
     return StringExpr(token.value[1] as String);
   });
   final string2 = (char("'") & any().starLazy(char("'")).flatten() & char("'"))
       .token()
-      .trim()
+      .trimNoNewline()
       .mapToken((token) {
     return StringExpr(token.value[1] as String);
   });
@@ -57,17 +62,26 @@ Parser<Token<ScopelessBlockExpr>> createParser() {
   // value[2] as Expr,
   // );
   // });
-  final block = (char('{') &
-          expr.starSeparated(char(';')).token().mapToken(
-                (token) => BlockExpr(
-                  token.value.elements.map((e) => e.value).toList(),
-                ),
-              ) &
-          char('}'))
-      .pick(1)
-      .cast<Token<BlockExpr>>()
-      .value()
-      .token();
+  Parser<Token<T>> block<T extends Expr>(
+    Parser<String> start,
+    Parser<String> end,
+    T Function(LinesExpr lines) blockFun,
+  ) =>
+      (start &
+              lineSeperator.optional() &
+              expr.starSeparated(lineSeperator).token().mapToken(
+                    (token) => blockFun(
+                      LinesExpr(
+                        token.value.elements.map((e) => e.value).toList(),
+                      ),
+                    ),
+                  ) &
+              lineSeperator.optional() &
+              end)
+          .pick(2)
+          .cast<Token<T>>()
+          .value()
+          .token();
 
   builder.primitive(integerWithUnit);
   builder.primitive(integer);
@@ -75,7 +89,23 @@ Parser<Token<ScopelessBlockExpr>> createParser() {
   builder.primitive(variable);
   builder.primitive(string1);
   builder.primitive(string2);
-  builder.primitive(block);
+  builder.primitive(
+    block<BlockedBlockExpr>(
+      Tokens.openTripleBrace,
+      Tokens.closeTripleBrace,
+      BlockedBlockExpr.new,
+    ),
+  );
+  builder.primitive(
+    block<ProtectedBlockExpr>(
+      Tokens.openDoubleBrace,
+      Tokens.closeDoubleBrace,
+      ProtectedBlockExpr.new,
+    ),
+  );
+  builder.primitive(
+    block<BlockExpr>(Tokens.openBrace, Tokens.closeBrace, BlockExpr.new),
+  );
 
   builder.group().wrapper(
         Tokens.openParen,
@@ -203,49 +233,55 @@ Parser<Token<ScopelessBlockExpr>> createParser() {
 }
 
 class Tokens {
-  static final power1 = char('^').trim();
-  static final power2 = string('**').trim();
+  static final power1 = char('^').trimNoNewline();
+  static final power2 = string('**').trimNoNewline();
   static final power = (power1 | power2).cast<String>();
 
-  static final mul = char('*').trim();
-  static final div = char('/').trim();
-  static final mod = char('%').trim();
+  static final mul = char('*').trimNoNewline();
+  static final div = char('/').trimNoNewline();
+  static final mod = char('%').trimNoNewline();
 
-  static final plus = char('+').trim();
-  static final minus = char('-').trim();
+  static final plus = char('+').trimNoNewline();
+  static final minus = char('-').trimNoNewline();
 
-  static final and = string('&&').trim();
-  static final or = string('||').trim();
+  static final and = string('&&').trimNoNewline();
+  static final or = string('||').trimNoNewline();
 
-  static final eq = string('==').trim();
-  static final ne = string('!=').trim();
-  static final lt = char('<').trim();
-  static final gt = char('>').trim();
-  static final lte = string('<=').trim();
-  static final gte = string('>=').trim();
+  static final eq = string('==').trimNoNewline();
+  static final ne = string('!=').trimNoNewline();
+  static final lt = char('<').trimNoNewline();
+  static final gt = char('>').trimNoNewline();
+  static final lte = string('<=').trimNoNewline();
+  static final gte = string('>=').trimNoNewline();
 
-  static final comma = char(',').trim();
+  static final comma = char(',').trimNoNewline();
 
-  static final assign = char('=').trim();
+  static final assign = char('=').trimNoNewline();
 
-  static final openParen = char('(').trim();
-  static final closeParen = char(')').trim();
+  static final openParen = char('(').trimNoNewline();
+  static final closeParen = char(')').trimNoNewline();
 
-  static final openBrace = char('{').trim();
-  static final closeBrace = char('}').trim();
+  static final openBrace = char('{').trimNoNewline();
+  static final closeBrace = char('}').trimNoNewline();
 
-  static final openBracket = char('[').trim();
-  static final closeBracket = char(']').trim();
+  static final openDoubleBrace = string('{{').trimNoNewline();
+  static final closeDoubleBrace = string('}}').trimNoNewline();
 
-  static final semicolon = char(';').trim();
-  static final colon = char(':').trim();
+  static final openTripleBrace = string('{{{').trimNoNewline();
+  static final closeTripleBrace = string('}}}').trimNoNewline();
 
-  static final funCreate = string('=>').trim();
+  static final openBracket = char('[').trimNoNewline();
+  static final closeBracket = char(']').trimNoNewline();
 
-  static final exclaimark = char('!').trim();
-  static final questionmark = char('?').trim();
+  static final semicolon = char(';').trimNoNewline();
+  static final colon = char(':').trimNoNewline();
 
-  static final dot = char('.').trim();
+  static final funCreate = string('=>').trimNoNewline();
+
+  static final exclaimark = char('!').trimNoNewline();
+  static final questionmark = char('?').trimNoNewline();
+
+  static final dot = char('.').trimNoNewline();
 }
 
 extension MapTokenParser<T1> on Parser<Token<T1>> {
@@ -256,6 +292,10 @@ extension MapTokenParser<T1> on Parser<Token<T1>> {
   }
 
   Parser<T1> value() => map((token) => token.value);
+}
+
+extension TrimParser<T> on Parser<T> {
+  Parser<T> trimNoNewline() => trim(char(' '));
 }
 
 // class MyGrammarDefinition extends GrammarDefinition<BlockExpr> {

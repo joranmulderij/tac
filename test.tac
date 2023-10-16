@@ -1,0 +1,6 @@
+print('test.tac being loaded');
+return {{
+  a=1;
+  b=2;
+  c=3;
+}}

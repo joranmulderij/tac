@@ -1,16 +1,23 @@
+import 'dart:io';
+
+import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
-import 'package:tac_dart/libraries/library.dart';
 import 'package:tac_dart/libraries/math.dart';
+import 'package:tac_dart/parser.dart';
+import 'package:tac_dart/state.dart';
 import 'package:tac_dart/value/value.dart';
 
-final coreLibrary = Library({
+final coreLibrary = {
   'true': const BoolValue(true),
   'false': const BoolValue(false),
   'print': _print,
   'type': _type,
   'import': _import,
   'load': _load,
-});
+  'return': _return,
+};
+
+// Core functions
 
 final _print = DartFunctionValue.from1Param(
   (state, arg) {
@@ -26,43 +33,56 @@ final _type = DartFunctionValue.from1Param(
   'value',
 );
 
+final _return = DartFunctionValue.from1Param(
+  (state, arg) => throw ReturnException(arg),
+  'value',
+);
+
 final DartFunctionValue _import = DartFunctionValue.from1Param(
   (state, arg) {
-    if (arg case StringValue(value: final path)) {
-      if (path.startsWith('tac:')) {
-        final _ = switch (path.substring(4)) {
-          'core' => coreLibrary.load(state),
-          'math' => mathLibrary.load(state),
-          _ => throw UnimplementedError('Unknown tac: import: $path'),
-        };
-        return arg;
-      } else {
-        throw UnimplementedError('Only tac: imports are supported');
-      }
-    } else {
-      throw IncorrectTypeError('string', arg.type);
+    final library = _loadLibrary(state, arg);
+    switch (library) {
+      case ObjectValue(:final values):
+        state.loadLibrary(values);
+        return library;
+      case Value():
+        throw IncorrectTypeError('object', library.type);
     }
   },
   'path',
 );
 
-final DartFunctionValue _load = DartFunctionValue(
-  (state, args) {
-    final arg = args[0];
-    if (arg case StringValue(value: final path)) {
-      if (path.startsWith('tac:')) {
-        final variables = switch (path.substring(4)) {
-          'core' => coreLibrary.variables,
-          'math' => mathLibrary.variables,
-          _ => throw UnimplementedError('Unknown tac: import: $path'),
-        };
-        return ObjectValue(variables);
-      } else {
-        throw UnimplementedError('Only tac: imports are supported');
-      }
-    } else {
-      throw IncorrectTypeError('string', arg.type);
-    }
-  },
-  const ['path'],
+final DartFunctionValue _load = DartFunctionValue.from1Param(
+  _loadLibrary,
+  'path',
 );
+
+// Utils
+
+Value _loadLibrary(State state, Value arg) {
+  if (arg case StringValue(value: final path)) {
+    final library = switch (null) {
+      _ when path.startsWith('tac:') => switch (path.substring(4)) {
+          'core' => ObjectValue(coreLibrary),
+          'math' => ObjectValue(mathLibrary),
+          _ => throw UnimplementedError('Unknown "tac:" import: $path'),
+        },
+      _ => _loadLibraryFromPath(state, path),
+    };
+    return library;
+  } else {
+    throw IncorrectTypeError('string', arg.type);
+  }
+}
+
+Value _loadLibraryFromPath(State state, String path) {
+  try {
+    final file = File(path);
+    final contents = file.readAsStringSync();
+    final lines = parse(contents);
+    final block = BlockedBlockExpr(lines);
+    return block.run(state);
+  } on PathNotFoundException {
+    throw PathNotFoundError(path);
+  }
+}

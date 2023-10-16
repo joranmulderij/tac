@@ -26,6 +26,9 @@ class ObjectValue extends Value {
 
   @override
   String toPrettyString() {
+    if (values.isEmpty) {
+      return '{}';
+    }
     // ignore: lines_longer_than_80_chars
     return '{ ${values.entries.map((e) => '${e.key} = ${e.value.toPrettyString()}').join('; ')} }';
   }
