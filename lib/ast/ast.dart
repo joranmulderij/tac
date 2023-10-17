@@ -3,6 +3,7 @@ import 'package:rational/rational.dart';
 import 'package:tac_dart/errors.dart';
 
 import 'package:tac_dart/state.dart';
+import 'package:tac_dart/units.dart';
 import 'package:tac_dart/value/value.dart';
 
 sealed class Expr {
@@ -10,11 +11,12 @@ sealed class Expr {
 }
 
 class NumberExpr extends Expr {
-  NumberExpr(this.rational);
+  NumberExpr(this.rational, String unit) : unitSet = UnitSet.parse(unit);
   final Rational rational;
+  final UnitSet unitSet;
 
   @override
-  Value run(State state) => NumberValue(rational);
+  Value run(State state) => NumberValue(rational, unitSet);
 }
 
 class VariableExpr extends Expr {

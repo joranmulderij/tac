@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:rational/rational.dart';
 import 'package:tac_dart/errors.dart';
-import 'package:tac_dart/libraries/library.dart';
+import 'package:tac_dart/units.dart';
 
 import 'package:tac_dart/value/value.dart';
 
@@ -17,14 +17,17 @@ final mathLibrary = {
   'sqrt': _mathFunction(math.sqrt),
   'log': _mathFunction(math.log),
   'exp': _mathFunction(math.exp),
-  'pi': NumberValue(Rational.parse(math.pi.toString())),
+  'pi': NumberValue(Rational.parse(math.pi.toString()), UnitSet.empty),
 };
 
 DartFunctionValue _mathFunction(num Function(num) f) {
   return DartFunctionValue.from1Param(
     (state, arg) {
       if (arg case NumberValue(:final value)) {
-        return NumberValue(Rational.parse(f(value.toDouble()).toString()));
+        return NumberValue(
+          Rational.parse(f(value.toDouble()).toString()),
+          UnitSet.empty,
+        );
       } else {
         throw IncorrectTypeError('number', arg.type);
       }

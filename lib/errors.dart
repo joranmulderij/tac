@@ -162,6 +162,21 @@ class PathNotFoundError extends MyError {
   }
 }
 
+class UnitsNotEqualError extends MyError {
+  const UnitsNotEqualError(this.left, this.right) : super(0);
+  final String left;
+  final String right;
+
+  @override
+  String toString() => 'UnitsNotEqualError($left, $right)';
+
+  @override
+  String toPrettyString() {
+    return 'UnitsNotEqualError: Cannot compare values with different units '
+        '("$left" and "$right").';
+  }
+}
+
 class ReturnException implements Exception {
   const ReturnException(this.value);
   final Value value;

@@ -29,15 +29,19 @@ Parser<Token<LinesExpr>> createParser() {
         (token) => LinesExpr(token.value.elements.map((e) => e.value).toList()),
       );
 
-  final integer = digit().plus().flatten().token().trimNoNewline().mapToken(
-        (token) => NumberExpr(Rational.parse(token.value)),
-      );
-  final decimal = (digit().star() & char('.') & digit().plus())
-      .flatten()
+  final integer = (digit().plus().flatten() & letter().plus().flatten())
       .token()
-      .mapToken((token) => NumberExpr(Rational.parse(token.value)));
-  final integerWithUnit =
-      (integer & letter().plus().flatten()).pick(0).cast<Token<Expr>>();
+      .trimNoNewline()
+      .mapToken(
+        (token) => NumberExpr(
+          Rational.parse(token.value[0] as String),
+          token.value[1] as String,
+        ),
+      );
+  final decimal =
+      (digit().star() & char('.') & digit().plus()).flatten().token().mapToken(
+            (token) => NumberExpr(Rational.parse(token.value), ''),
+          );
   final variable = (letter() | char('_'))
       .plus()
       .flatten()
@@ -83,7 +87,6 @@ Parser<Token<LinesExpr>> createParser() {
           .value()
           .token();
 
-  builder.primitive(integerWithUnit);
   builder.primitive(integer);
   builder.primitive(decimal);
   builder.primitive(variable);

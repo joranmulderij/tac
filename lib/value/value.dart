@@ -4,6 +4,7 @@ import 'package:rational/rational.dart';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/state.dart';
+import 'package:tac_dart/units.dart';
 
 part 'number_value.dart';
 part 'dart_function_value.dart';
