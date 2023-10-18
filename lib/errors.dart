@@ -162,6 +162,19 @@ class PathNotFoundError extends MyError {
   }
 }
 
+class UnitParseError extends MyError {
+  const UnitParseError(this.unit) : super(0);
+  final String unit;
+
+  @override
+  String toString() => 'UnitParseError($unit)';
+
+  @override
+  String toPrettyString() {
+    return 'UnitParseError: "$unit" not a valid unit.';
+  }
+}
+
 class UnitsNotEqualError extends MyError {
   const UnitsNotEqualError(this.left, this.right) : super(0);
   final String left;

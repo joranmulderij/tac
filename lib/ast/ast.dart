@@ -90,7 +90,7 @@ class OperatorExpr extends Expr {
         Operator.lte => leftValue().lte(rightValue()),
         Operator.gte => leftValue().gte(rightValue()),
         Operator.assign => _assign(state, left, rightValue()),
-        Operator.pipe => throw UnimplementedError(),
+        Operator.pipe => _pipe(state, leftValue(), right),
         Operator.funCreate => _funCreate(left, right),
         Operator.and => throw UnimplementedError(),
         Operator.or => throw UnimplementedError(),
@@ -134,6 +134,38 @@ class OperatorExpr extends Expr {
       _ => throw ExpectedIdentifierError(left.runtimeType.toString()),
     };
     return left.getProperty(property);
+  }
+
+  Value _pipe(State state, Value left, Expr right) {
+    Value _runPipe(Value value) {
+      state.pushScope();
+      state.set('_', value);
+      final result = right.run(state);
+      state.popScope();
+      switch (result) {
+        case DartFunctionValue(:final args):
+        case FunValue(:final args):
+          if (args.length != 1) {
+            throw Exception('Pipe function must have exactly one argument');
+          }
+          return result.call(state, [value]);
+        default:
+          return result;
+      }
+    }
+
+    switch (left) {
+      case NumberValue(value: final number, :final unitSet):
+        final result = <Value>[];
+        for (var i = 0; i < number.toBigInt().toInt(); i++) {
+          result.add(_runPipe(NumberValue(Rational.fromInt(i), unitSet)));
+        }
+        return ListValue(result);
+      case ListValue(values: final list):
+        return ListValue(list.map(_runPipe).toList());
+      default:
+        return _runPipe(left);
+    }
   }
 }
 

@@ -1,17 +1,20 @@
 import 'dart:math' as math;
 
+import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:tac_dart/errors.dart';
 
-class UnitSet {
+@immutable
+class UnitSet extends Equatable {
   const UnitSet(this._units);
 
   factory UnitSet.parse(String input) {
+    if (input.isEmpty) return UnitSet.empty;
     final result = unitParser().parse(input);
     final units = switch (result) {
       Success() => result.value,
-      Failure() =>
-        throw ArgumentError.value(input, 'input', 'Invalid unit set'),
+      Failure() => throw UnitParseError(input),
     };
     final map = <Unit, int>{};
     for (final unit in units) {
@@ -25,11 +28,11 @@ class UnitSet {
   Map<Dimension, int> get dimensions {
     final dimensions = <Dimension, int>{};
     for (final MapEntry(key: unit, value: amount) in _units.entries) {
-      dimensions[Dimension.mass] = unit.mass * amount;
-      dimensions[Dimension.length] = unit.length * amount;
-      dimensions[Dimension.time] = unit.time * amount;
-      dimensions[Dimension.current] = unit.current * amount;
-      dimensions[Dimension.temperature] = unit.temperature * amount;
+      dimensions[Dimension.mass] = unit.dim.mass * amount;
+      dimensions[Dimension.length] = unit.dim.length * amount;
+      dimensions[Dimension.time] = unit.dim.time * amount;
+      dimensions[Dimension.current] = unit.dim.current * amount;
+      dimensions[Dimension.temperature] = unit.dim.temperature * amount;
     }
     return dimensions;
   }
@@ -44,34 +47,48 @@ class UnitSet {
 
   @override
   String toString() {
-    return _units.entries
-        .map((e) => e.value == 1 ? e.key.name : '${e.key.name}^${e.value}')
-        .join(' * ');
-  }
-
-  UnitSet operator *(UnitSet other) {
-    const result = UnitSet.empty;
-    for (final MapEntry(key: unit, value: amount) in _units.entries) {
-      result[unit] = amount + other[unit];
+    final result = StringBuffer();
+    for (final MapEntry(key: unit, value: amount)
+        in _units.entries.where((element) => element.value > 0)) {
+      result.write(unit.toString());
+      if (amount != 1) result.write('$amount');
     }
-    return result;
+    for (final MapEntry(key: unit, value: amount)
+        in _units.entries.where((element) => element.value < 0)) {
+      result.write('/$unit');
+      if (amount != -1) result.write('${-amount}');
+    }
+    return result.toString();
   }
 
-  int operator [](Unit unit) => _units[unit] ?? 0;
+  UnitSet operator +(UnitSet other) {
+    final map = <Unit, int>{};
+    for (final MapEntry(key: unit, value: amount) in _units.entries) {
+      map[unit] = amount;
+    }
+    for (final MapEntry(key: unit, value: amount) in other._units.entries) {
+      map[unit] = (map[unit] ?? 0) + amount;
+      if (map[unit] == 0) map.remove(unit);
+    }
+    return UnitSet(map);
+  }
 
-  void operator []=(Unit unit, int amount) {
-    _units[unit] = amount;
+  UnitSet operator -(UnitSet other) {
+    final map = <Unit, int>{};
+    for (final MapEntry(key: unit, value: amount) in _units.entries) {
+      map[unit] = amount;
+    }
+    for (final MapEntry(key: unit, value: amount) in other._units.entries) {
+      map[unit] = (map[unit] ?? 0) - amount;
+      if (map[unit] == 0) map.remove(unit);
+    }
+    return UnitSet(map);
   }
 
   static const UnitSet empty = UnitSet({});
 
-  UnitSet checkEq(UnitSet other) {
-    if (this == other) {
-      return this;
-    } else {
-      throw UnitsNotEqualError(toString(), other.toString());
-    }
-  }
+  @override
+  List<Object?> get props => [toString()];
 }
 
 enum Dimension {
@@ -86,34 +103,9 @@ enum Dimension {
   final Unit defaultUnit;
 }
 
-enum Unit {
-  // Mass
-  kiloGram('kg', 1, mass: 1),
-  gram('g', 0.001, mass: 1),
-
-  // Length
-  meter('m', 1, length: 1),
-  kiloMeter('km', 1000, length: 1),
-
-  // Time
-  second('s', 1, time: 1),
-  minute('min', 60, time: 1),
-  hour('h', 3600, time: 1),
-
-  // Current
-  ampere('A', 1, current: 1),
-
-  // Temperature
-  kelvin('K', 1, temperature: 1),
-  celsius('°C', 1, temperature: 1),
-
-  // Force
-  newton('N', 1, mass: 1, length: 1, time: -2),
-  kiloNewton('kN', 1000, mass: 1, length: 1, time: -2);
-
-  const Unit(
-    this.name,
-    this.multiplier, {
+@immutable
+class DimensionSignature extends Equatable {
+  const DimensionSignature({
     this.mass = 0,
     this.length = 0,
     this.time = 0,
@@ -126,13 +118,67 @@ enum Unit {
   final int time;
   final int current;
   final int temperature;
+
+  @override
+  List<Object?> get props => [mass, length, time, current, temperature];
+}
+
+const mass = DimensionSignature(mass: 1);
+const length = DimensionSignature(length: 1);
+const time = DimensionSignature(time: 1);
+const current = DimensionSignature(time: 1);
+const temperature = DimensionSignature(temperature: 1);
+const force = DimensionSignature(mass: 1, length: 1, time: -2);
+
+enum Unit {
+  // Mass
+  kiloGram('kg', 1, mass),
+  gram('g', 0.001, mass),
+
+  // Length
+  meter('m', 1, length),
+  kiloMeter('km', 1000, length),
+
+  // Time
+  second('s', 1, time),
+  minute('min', 60, time),
+  hour('h', 3600, time),
+
+  // Current
+  ampere('A', 1, current),
+
+  // Temperature
+  kelvin('K', 1, temperature),
+  celsius('°C', 1, temperature),
+
+  // Force
+  newton('N', 1, force),
+  kiloNewton('kN', 1000, force);
+
+  const Unit(
+    this.name,
+    this.multiplier,
+    this.dim,
+  );
+
   final String name;
   final double multiplier;
+  final DimensionSignature dim;
+
+  @override
+  String toString() => name;
 }
 
 Parser<List<Unit>> unitParser() => Unit.values
-    .map((e) => string(e.name).map((_) => e))
+    .map(
+      (e) => (string(e.name) & digit().star().flatten()).map((token) {
+        final amountString = token[1] as String;
+        if (amountString.isEmpty) return [e];
+        final amount = int.parse(amountString);
+        return [for (var i = 0; i < amount; i++) e];
+      }),
+    )
     .toChoiceParser()
     .plus()
-    .map((e) => e.whereType<Unit>().toList())
+    .map((value) => value.expand((element) => element).toList())
     .end();

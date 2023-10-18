@@ -11,35 +11,35 @@ class NumberValue extends Value {
   @override
   Value add(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) =>
-          NumberValue(this.value + value, this.unitSet.checkEq(unitSet)),
+          NumberValue(this.value + value, checkUnitsEq(this.unitSet, unitSet)),
         _ => super.add(other),
       };
 
   @override
   Value sub(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) =>
-          NumberValue(this.value - value, this.unitSet.checkEq(unitSet)),
+          NumberValue(this.value - value, checkUnitsEq(this.unitSet, unitSet)),
         _ => super.sub(other),
       };
 
   @override
   Value mul(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) =>
-          NumberValue(this.value * value, this.unitSet.checkEq(unitSet)),
+          NumberValue(this.value * value, this.unitSet + unitSet),
         _ => super.mul(other),
       };
 
   @override
   Value div(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) =>
-          NumberValue(this.value / value, this.unitSet.checkEq(unitSet)),
+          NumberValue(this.value / value, this.unitSet - unitSet),
         _ => super.div(other),
       };
 
   @override
   Value mod(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) =>
-          NumberValue(this.value % value, this.unitSet.checkEq(unitSet)),
+          NumberValue(this.value % value, checkUnitsEq(this.unitSet, unitSet)),
         _ => super.mod(other),
       };
 
@@ -47,7 +47,7 @@ class NumberValue extends Value {
   Value pow(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) => NumberValue(
             this.value.pow(value.toBigInt().toInt()),
-            this.unitSet.checkEq(unitSet),
+            checkUnitsEq(this.unitSet, unitSet),
           ),
         _ => super.pow(other),
       };
@@ -56,7 +56,7 @@ class NumberValue extends Value {
   Value lt(Value other) {
     switch (other) {
       case NumberValue(:final value, :final unitSet):
-        this.unitSet.checkEq(unitSet);
+        checkUnitsEq(this.unitSet, unitSet);
         return BoolValue(this.value < value);
       default:
         return super.gte(other);
@@ -67,7 +67,7 @@ class NumberValue extends Value {
   Value lte(Value other) {
     switch (other) {
       case NumberValue(:final value, :final unitSet):
-        this.unitSet.checkEq(unitSet);
+        checkUnitsEq(this.unitSet, unitSet);
         return BoolValue(this.value <= value);
       default:
         return super.gte(other);
@@ -78,7 +78,7 @@ class NumberValue extends Value {
   Value gt(Value other) {
     switch (other) {
       case NumberValue(:final value, :final unitSet):
-        this.unitSet.checkEq(unitSet);
+        checkUnitsEq(this.unitSet, unitSet);
         return BoolValue(this.value > value);
       default:
         return super.gte(other);
@@ -89,7 +89,7 @@ class NumberValue extends Value {
   Value gte(Value other) {
     switch (other) {
       case NumberValue(:final value, :final unitSet):
-        this.unitSet.checkEq(unitSet);
+        checkUnitsEq(this.unitSet, unitSet);
         return BoolValue(this.value >= value);
       default:
         return super.gte(other);
@@ -108,9 +108,9 @@ class NumberValue extends Value {
   @override
   String toPrettyString() {
     if (value.isInteger) {
-      return '$value * $unitSet';
+      return '$value$unitSet';
     } else {
-      return '$value = ${value.toDouble()} * $unitSet';
+      return '$value$unitSet = ${value.toDouble()}$unitSet';
     }
   }
 
@@ -126,4 +126,12 @@ class NumberValue extends Value {
 
   @override
   List<Object> get props => [value];
+}
+
+UnitSet checkUnitsEq(UnitSet left, UnitSet right) {
+  if (left == right) {
+    return left;
+  } else {
+    throw UnitsNotEqualError(left.toString(), right.toString());
+  }
 }

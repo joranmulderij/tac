@@ -29,15 +29,16 @@ Parser<Token<LinesExpr>> createParser() {
         (token) => LinesExpr(token.value.elements.map((e) => e.value).toList()),
       );
 
-  final integer = (digit().plus().flatten() & letter().plus().flatten())
-      .token()
-      .trimNoNewline()
-      .mapToken(
-        (token) => NumberExpr(
-          Rational.parse(token.value[0] as String),
-          token.value[1] as String,
-        ),
-      );
+  final integer =
+      (digit().plus().flatten() & (letter() | digit()).star().flatten())
+          .token()
+          .trimNoNewline()
+          .mapToken(
+            (token) => NumberExpr(
+              Rational.parse(token.value[0] as String),
+              token.value[1] as String,
+            ),
+          );
   final decimal =
       (digit().star() & char('.') & digit().plus()).flatten().token().mapToken(
             (token) => NumberExpr(Rational.parse(token.value), ''),
@@ -87,8 +88,8 @@ Parser<Token<LinesExpr>> createParser() {
           .value()
           .token();
 
-  builder.primitive(integer);
   builder.primitive(decimal);
+  builder.primitive(integer);
   builder.primitive(variable);
   builder.primitive(string1);
   builder.primitive(string2);
@@ -118,7 +119,7 @@ Parser<Token<LinesExpr>> createParser() {
 
   builder.group().wrapper(
     Tokens.openBracket.token(),
-    Tokens.closeBracket.token(),
+    (Tokens.comma & Tokens.closeBracket).token(),
     (left, middle, right) {
       final exprs = switch (middle.value) {
         SequenceExpr(:final exprs) => exprs,
@@ -225,6 +226,13 @@ Parser<Token<LinesExpr>> createParser() {
     },
   );
 
+  // Pipe
+  builder.group().left(
+        Tokens.pipe,
+        OperatorExpr.fromToken(Operator.pipe),
+      );
+
+  // Assignment
   builder.group().right(
         Tokens.assign,
         OperatorExpr.fromToken(Operator.assign),
@@ -260,6 +268,8 @@ class Tokens {
   static final comma = char(',').trimNoNewline();
 
   static final assign = char('=').trimNoNewline();
+
+  static final pipe = char('|').trimNoNewline();
 
   static final openParen = char('(').trimNoNewline();
   static final closeParen = char(')').trimNoNewline();

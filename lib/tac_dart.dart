@@ -20,6 +20,7 @@ void runRepl() {
     try {
       final ast = parse(input);
       final value = ast.run(state);
+      if (input.endsWith(';')) continue;
       print(_greenPen('  = ${value.toPrettyString()}'));
     } on MyError catch (e) {
       print(_redPen(e.toPrettyString()));
