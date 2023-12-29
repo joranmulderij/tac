@@ -45,20 +45,20 @@ class UnitSet extends Equatable {
     return multiplier;
   }
 
+  bool get isEmpty => _units.isEmpty;
+
+  UnitSet operator *(int other) =>
+      UnitSet(_units.map((key, value) => MapEntry(key, value * other)));
+
   @override
   String toString() {
-    final result = StringBuffer();
-    for (final MapEntry(key: unit, value: amount)
-        in _units.entries.where((element) => element.value > 0)) {
-      result.write(unit.toString());
-      if (amount != 1) result.write('$amount');
-    }
-    for (final MapEntry(key: unit, value: amount)
-        in _units.entries.where((element) => element.value < 0)) {
-      result.write('/$unit');
-      if (amount != -1) result.write('${-amount}');
-    }
-    return result.toString();
+    if (_units.isEmpty) return '';
+    final units = _units.entries.map((e) {
+      final unit = e.key;
+      final amount = e.value;
+      return '$unit${amount == 1 ? '' : '$amount'}';
+    }).join(' ');
+    return '[$units]';
   }
 
   UnitSet operator +(UnitSet other) {
@@ -104,7 +104,7 @@ enum Dimension {
 }
 
 @immutable
-class DimensionSignature extends Equatable {
+class DimensionSignature {
   const DimensionSignature({
     this.mass = 0,
     this.length = 0,
@@ -132,37 +132,40 @@ const force = DimensionSignature(mass: 1, length: 1, time: -2);
 
 enum Unit {
   // Mass
-  kiloGram('kg', 1, mass),
-  gram('g', 0.001, mass),
+  kiloGram('kg', ['kilograms', 'kilogram', 'kg'], 1, mass),
+  gram('g', ['g', 'gram', 'grams'], 0.001, mass),
 
   // Length
-  meter('m', 1, length),
-  kiloMeter('km', 1000, length),
+  meter('m', ['meters', 'meter', 'm'], 1, length),
+  milliMeter('mm', ['mm'], 0.001, length),
+  centiMeter('cm', ['cm'], 0.01, length),
+  deciMeter('dm', ['dm'], 0.1, length),
+  decaMeter('dam', ['dam'], 10, length),
+  hectoMeter('hm', ['hm'], 100, length),
+  kiloMeter('km', ['km'], 1000, length),
 
   // Time
-  second('s', 1, time),
-  minute('min', 60, time),
-  hour('h', 3600, time),
+  second('s', ['s'], 1, time),
+  minute('min', ['min'], 60, time),
+  hour('h', ['h'], 3600, time),
 
   // Current
-  ampere('A', 1, current),
+  ampere('A', ['A'], 1, current),
 
   // Temperature
-  kelvin('K', 1, temperature),
-  celsius('°C', 1, temperature),
+  kelvin('K', ['K'], 1, temperature),
+  celsius('°C', ['oC', 'degC'], 1, temperature, offset: 273.15),
 
   // Force
-  newton('N', 1, force),
-  kiloNewton('kN', 1000, force);
+  newton('N', ['N'], 1, force),
+  kiloNewton('kN', ['kN'], 1000, force);
 
-  const Unit(
-    this.name,
-    this.multiplier,
-    this.dim,
-  );
+  const Unit(this.name, this.names, this.multiplier, this.dim, {this.offset});
 
   final String name;
+  final List<String> names;
   final double multiplier;
+  final double? offset;
   final DimensionSignature dim;
 
   @override
@@ -171,7 +174,9 @@ enum Unit {
 
 Parser<List<Unit>> unitParser() => Unit.values
     .map(
-      (e) => (string(e.name) & digit().star().flatten()).map((token) {
+      (e) => (e.names.map(string).toChoiceParser().flatten() &
+              digit().star().flatten())
+          .map((token) {
         final amountString = token[1] as String;
         if (amountString.isEmpty) return [e];
         final amount = int.parse(amountString);

@@ -1,9 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:rational/rational.dart';
 import 'package:tac_dart/errors.dart';
+import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/units.dart';
-
 import 'package:tac_dart/value/value.dart';
 
 //TODO: check for values that don't need to be computed, for example sin(0)
@@ -17,15 +16,16 @@ final mathLibrary = {
   'sqrt': _mathFunction(math.sqrt),
   'log': _mathFunction(math.log),
   'exp': _mathFunction(math.exp),
-  'pi': NumberValue(Rational.parse(math.pi.toString()), UnitSet.empty),
+  'pi': const NumberValue(DoubleNumber(math.pi), UnitSet.empty),
+  'e': const NumberValue(DoubleNumber(math.e), UnitSet.empty),
 };
 
-DartFunctionValue _mathFunction(num Function(num) f) {
+DartFunctionValue _mathFunction(double Function(double) f) {
   return DartFunctionValue.from1Param(
     (state, arg) {
       if (arg case NumberValue(:final value)) {
         return NumberValue(
-          Rational.parse(f(value.toDouble()).toString()),
+          DoubleNumber(f(value.toDouble())),
           UnitSet.empty,
         );
       } else {

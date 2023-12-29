@@ -1,7 +1,8 @@
 import 'package:petitparser/petitparser.dart';
-import 'package:rational/rational.dart';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
+import 'package:tac_dart/number/number.dart';
+import 'package:tac_dart/units.dart';
 
 LinesExpr parse(String input) {
   final parser = createParser();
@@ -19,9 +20,10 @@ Parser<Token<LinesExpr>> createParser() {
   final expr = builder.loopback;
 
   final lineSeperator =
-      (char(';') | char('\n') | char('\r')).plus().cast<void>();
+      (char(';') | char('\n') | char('\r')).trimNoNewline().cast<void>();
 
-  final lines = (expr.starSeparated(lineSeperator) & lineSeperator.optional())
+  final lines = (expr.starSeparated(lineSeperator.plus()) &
+          (lineSeperator | whitespace()).star())
       .pick(0)
       .cast<SeparatedList<Token<Expr>, void>>()
       .token()
@@ -29,20 +31,30 @@ Parser<Token<LinesExpr>> createParser() {
         (token) => LinesExpr(token.value.elements.map((e) => e.value).toList()),
       );
 
-  final integer =
-      (digit().plus().flatten() & (letter() | digit()).star().flatten())
-          .token()
-          .trimNoNewline()
-          .mapToken(
-            (token) => NumberExpr(
-              Rational.parse(token.value[0] as String),
-              token.value[1] as String,
-            ),
-          );
-  final decimal =
-      (digit().star() & char('.') & digit().plus()).flatten().token().mapToken(
-            (token) => NumberExpr(Rational.parse(token.value), ''),
-          );
+  final unitSet = (Tokens.openBracket &
+          (letter() | digit()).star().flatten() &
+          Tokens.closeBracket)
+      .map((values) => UnitSet.parse(values[1] as String));
+
+  final integer = (digit().plus().flatten() & unitSet.optional())
+      .token()
+      .trimNoNewline()
+      .mapToken(
+        (token) => NumberExpr(
+          Number.fromString(token.value[0] as String),
+          (token.value[1] as UnitSet?) ?? UnitSet.empty,
+        ),
+      );
+  final decimal = ((digit().star() & char('.') & digit().plus()).flatten() &
+          unitSet.optional())
+      .token()
+      .trimNoNewline()
+      .mapToken(
+        (token) => NumberExpr(
+          Number.fromString(token.value[0] as String),
+          (token.value[1] as UnitSet?) ?? UnitSet.empty,
+        ),
+      );
   final variable = (letter() | char('_'))
       .plus()
       .flatten()
@@ -73,15 +85,15 @@ Parser<Token<LinesExpr>> createParser() {
     T Function(LinesExpr lines) blockFun,
   ) =>
       (start &
-              lineSeperator.optional() &
-              expr.starSeparated(lineSeperator).token().mapToken(
+              lineSeperator.star() &
+              expr.starSeparated(lineSeperator.plus()).token().mapToken(
                     (token) => blockFun(
                       LinesExpr(
                         token.value.elements.map((e) => e.value).toList(),
                       ),
                     ),
                   ) &
-              lineSeperator.optional() &
+              lineSeperator.star() &
               end)
           .pick(2)
           .cast<Token<T>>()
@@ -119,7 +131,7 @@ Parser<Token<LinesExpr>> createParser() {
 
   builder.group().wrapper(
     Tokens.openBracket.token(),
-    (Tokens.comma & Tokens.closeBracket).token(),
+    (Tokens.comma.optional() & Tokens.closeBracket).token(),
     (left, middle, right) {
       final exprs = switch (middle.value) {
         SequenceExpr(:final exprs) => exprs,
@@ -127,6 +139,23 @@ Parser<Token<LinesExpr>> createParser() {
       };
       return Token(
         ListExpr(exprs),
+        left.buffer + middle.buffer + right.buffer,
+        left.start,
+        right.stop,
+      );
+    },
+  );
+
+  builder.group().wrapper(
+    Tokens.lt.token(),
+    (Tokens.comma.optional() & Tokens.gt).token(),
+    (left, middle, right) {
+      final exprs = switch (middle.value) {
+        SequenceExpr(:final exprs) => exprs,
+        final expr => [expr],
+      };
+      return Token(
+        VectorExpr(exprs),
         left.buffer + middle.buffer + right.buffer,
         left.start,
         right.stop,
@@ -159,15 +188,52 @@ Parser<Token<LinesExpr>> createParser() {
         a.stop,
       ),
     )
+    ..postfix(
+      Tokens.increment.token(),
+      (a, op) => Token(
+        UnaryExpr(UnaryOperator.postInc, a.value),
+        op.buffer + a.buffer,
+        op.start,
+        a.stop,
+      ),
+    )
+    ..postfix(
+      Tokens.decrement.token(),
+      (a, op) => Token(
+        UnaryExpr(UnaryOperator.postDec, a.value),
+        op.buffer + a.buffer,
+        op.start,
+        a.stop,
+      ),
+    )
     ..prefix(
-      Tokens.gt.token(),
+      Tokens.increment.token(),
       (op, a) => Token(
-        UnaryExpr(UnaryOperator.print, a.value),
+        UnaryExpr(UnaryOperator.inc, a.value),
+        op.buffer + a.buffer,
+        op.start,
+        a.stop,
+      ),
+    )
+    ..prefix(
+      Tokens.decrement.token(),
+      (op, a) => Token(
+        UnaryExpr(UnaryOperator.dec, a.value),
         op.buffer + a.buffer,
         op.start,
         a.stop,
       ),
     );
+
+  // ..prefix(
+  //   Tokens.gt.token(),
+  //   (op, a) => Token(
+  //     UnaryExpr(UnaryOperator.print, a.value),
+  //     op.buffer + a.buffer,
+  //     op.start,
+  //     a.stop,
+  // ),
+  // );
 
   builder.group().right(Tokens.power, OperatorExpr.fromToken(Operator.pow));
 
@@ -181,19 +247,21 @@ Parser<Token<LinesExpr>> createParser() {
     ..left(Tokens.minus, OperatorExpr.fromToken(Operator.sub));
 
   builder.group()
+    ..left(Tokens.lte, OperatorExpr.fromToken(Operator.lte))
+    ..left(Tokens.gte, OperatorExpr.fromToken(Operator.gte))
     ..left(Tokens.lt, OperatorExpr.fromToken(Operator.lt))
     ..left(Tokens.gt, OperatorExpr.fromToken(Operator.gt))
     ..left(Tokens.eq, OperatorExpr.fromToken(Operator.eq))
-    ..left(Tokens.ne, OperatorExpr.fromToken(Operator.ne))
-    ..left(Tokens.lte, OperatorExpr.fromToken(Operator.lte))
-    ..left(Tokens.gte, OperatorExpr.fromToken(Operator.gte));
+    ..left(Tokens.ne, OperatorExpr.fromToken(Operator.ne));
 
   builder.group().left(Tokens.and, OperatorExpr.fromToken(Operator.and));
 
   builder.group().left(Tokens.or, OperatorExpr.fromToken(Operator.or));
 
   // Function call
-  builder.group().right(string('').token(), SequencialExpr.fromToken);
+  builder
+      .group()
+      .right(char('@').not().flatten().token(), SequencialExpr.fromToken);
 
   // Sequence
   builder.group().left(Tokens.comma, (left, op, right) {
@@ -228,7 +296,7 @@ Parser<Token<LinesExpr>> createParser() {
 
   // Pipe
   builder.group().left(
-        Tokens.pipe,
+        [Tokens.pipe, Tokens.pipeRight].toChoiceParser(),
         OperatorExpr.fromToken(Operator.pipe),
       );
 
@@ -270,6 +338,8 @@ class Tokens {
   static final assign = char('=').trimNoNewline();
 
   static final pipe = char('|').trimNoNewline();
+  // TODO: This gets interpreted as "|" and ">" where ">" is the print operator
+  static final pipeRight = string('|>').trimNoNewline();
 
   static final openParen = char('(').trimNoNewline();
   static final closeParen = char(')').trimNoNewline();
@@ -293,6 +363,9 @@ class Tokens {
 
   static final exclaimark = char('!').trimNoNewline();
   static final questionmark = char('?').trimNoNewline();
+
+  static final increment = string('++').trimNoNewline();
+  static final decrement = string('--').trimNoNewline();
 
   static final dot = char('.').trimNoNewline();
 }

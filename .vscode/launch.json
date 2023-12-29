@@ -8,7 +8,7 @@
             "name": "tac_dart",
             "request": "launch",
             "type": "dart",
-            "program": "bin/main.dart",
+            "program": "bin/tac_dart.dart",
             "console": "terminal"
         }
     ]

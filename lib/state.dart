@@ -1,9 +1,12 @@
 import 'package:tac_dart/libraries/core.dart';
 import 'package:tac_dart/libraries/math.dart';
+import 'package:tac_dart/libraries/plot.dart';
 import 'package:tac_dart/value/value.dart';
 
 class State {
-  final List<Scope> scopes = [];
+  State() : scopes = [Scope(ScopeProtectionLevel.blocked)];
+
+  final List<Scope> scopes;
 
   Value get(String name) {
     for (final scope in scopes.reversed) {
@@ -44,10 +47,7 @@ class State {
   }
 
   void pushBlockedScope() {
-    final scope = Scope(ScopeProtectionLevel.blocked);
-    scopes.add(scope);
-    loadLibrary(coreLibrary);
-    loadLibrary(mathLibrary);
+    scopes.add(Scope(ScopeProtectionLevel.blocked));
   }
 
   Scope popScope() {
@@ -56,7 +56,13 @@ class State {
 }
 
 class Scope {
-  Scope(this.protectionLevel);
+  Scope(this.protectionLevel) {
+    if (protectionLevel == ScopeProtectionLevel.blocked) {
+      variables.addAll(coreLibrary);
+      variables.addAll(mathLibrary);
+      variables.addAll(plotLibrary);
+    }
+  }
 
   final Map<String, Value> variables = {};
   final ScopeProtectionLevel protectionLevel;

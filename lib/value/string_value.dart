@@ -13,8 +13,7 @@ class StringValue extends Value {
 
   @override
   Value mul(Value other) => switch (other) {
-        NumberValue(:final value) =>
-          StringValue(this.value * value.toBigInt().toInt()),
+        NumberValue(:final value) => StringValue(this.value * value.toInt()),
         _ => super.mul(other),
       };
 

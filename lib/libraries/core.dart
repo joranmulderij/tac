@@ -15,6 +15,8 @@ final coreLibrary = {
   'import': _import,
   'load': _load,
   'return': _return,
+  'eval': _eval,
+  'exit': _exit,
 };
 
 // Core functions
@@ -52,7 +54,7 @@ final DartFunctionValue _import = DartFunctionValue.from1Param(
   'path',
 );
 
-final DartFunctionValue _load = DartFunctionValue.from1Param(
+final _load = DartFunctionValue.from1Param(
   _loadLibrary,
   'path',
 );
@@ -86,3 +88,30 @@ Value _loadLibraryFromPath(State state, String path) {
     throw PathNotFoundError(path);
   }
 }
+
+Value _eval = DartFunctionValue.from1Param(
+  (state, arg) {
+    if (arg case StringValue(value: final input)) {
+      final ast = parse(input);
+      return ast.run(state);
+    } else {
+      throw IncorrectTypeError('string', arg.type);
+    }
+  },
+  'value',
+);
+
+Value _exit = DartFunctionValue.from1Param(
+  (state, arg) {
+    if (arg case NumberValue(value: final code)) {
+      if (code.isInteger) {
+        exit(code.toInt());
+      } else {
+        throw IncorrectTypeError('int', arg.type);
+      }
+    } else {
+      throw IncorrectTypeError('int', arg.type);
+    }
+  },
+  'returnCode',
+);

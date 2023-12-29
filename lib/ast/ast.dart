@@ -1,7 +1,6 @@
 import 'package:petitparser/petitparser.dart';
-import 'package:rational/rational.dart';
 import 'package:tac_dart/errors.dart';
-
+import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/state.dart';
 import 'package:tac_dart/units.dart';
 import 'package:tac_dart/value/value.dart';
@@ -11,8 +10,9 @@ sealed class Expr {
 }
 
 class NumberExpr extends Expr {
-  NumberExpr(this.rational, String unit) : unitSet = UnitSet.parse(unit);
-  final Rational rational;
+  NumberExpr(this.rational, this.unitSet);
+
+  final Number rational;
   final UnitSet unitSet;
 
   @override
@@ -137,7 +137,7 @@ class OperatorExpr extends Expr {
   }
 
   Value _pipe(State state, Value left, Expr right) {
-    Value _runPipe(Value value) {
+    Value runPipe(Value value) {
       state.pushScope();
       state.set('_', value);
       final result = right.run(state);
@@ -157,14 +157,14 @@ class OperatorExpr extends Expr {
     switch (left) {
       case NumberValue(value: final number, :final unitSet):
         final result = <Value>[];
-        for (var i = 0; i < number.toBigInt().toInt(); i++) {
-          result.add(_runPipe(NumberValue(Rational.fromInt(i), unitSet)));
+        for (var i = 0; i < number.toInt(); i++) {
+          result.add(runPipe(NumberValue(Number.fromInt(i), unitSet)));
         }
         return ListValue(result);
       case ListValue(values: final list):
-        return ListValue(list.map(_runPipe).toList());
+        return ListValue(list.map(runPipe).toList());
       default:
-        return _runPipe(left);
+        return runPipe(left);
     }
   }
 }
@@ -197,12 +197,32 @@ class UnaryExpr extends Expr {
 
   @override
   Value run(State state) {
-    final value = expr.run(state);
-    return switch (op) {
-      UnaryOperator.not => value.not(),
-      UnaryOperator.neg => value.neg(),
-      UnaryOperator.print => _print(value),
-    };
+    Value value() => expr.run(state);
+    print(op);
+    switch (op) {
+      case UnaryOperator.not:
+        return value().not();
+      case UnaryOperator.neg:
+        return value().neg();
+      case UnaryOperator.print:
+        return _print(value());
+      case UnaryOperator.inc || UnaryOperator.dec:
+        switch (expr) {
+          case VariableExpr(:final name):
+            var value = state.get(name);
+            value = switch (op) {
+              UnaryOperator.inc => value.add(NumberValue.one),
+              UnaryOperator.dec => value.sub(NumberValue.one),
+              _ => value,
+            };
+            state.set(name, value);
+            return value;
+          default:
+            throw Exception('Cannot increment $expr');
+        }
+      default:
+        throw UnimplementedError();
+    }
   }
 
   Value _print(Value value) {
@@ -215,6 +235,10 @@ class UnaryExpr extends Expr {
 enum UnaryOperator {
   not,
   neg,
+  inc,
+  dec,
+  postInc,
+  postDec,
   print,
 }
 
@@ -369,6 +393,20 @@ class SequenceExpr extends Expr {
       }
     }
     return SequenceValue(values);
+  }
+}
+
+class VectorExpr extends Expr {
+  VectorExpr(this.exprs);
+  final List<Expr> exprs;
+
+  @override
+  Value run(State state) {
+    final values = <Value>[];
+    for (final expr in exprs) {
+      values.add(expr.run(state));
+    }
+    return VectorValue(values);
   }
 }
 

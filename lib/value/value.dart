@@ -1,20 +1,21 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'package:rational/rational.dart';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
+import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/state.dart';
 import 'package:tac_dart/units.dart';
 
-part 'number_value.dart';
-part 'dart_function_value.dart';
 part 'bool_value.dart';
-part 'string_value.dart';
-part 'unknown_value.dart';
+part 'dart_function_value.dart';
 part 'fun_value.dart';
-part 'sequence_value.dart';
 part 'list_value.dart';
 part 'map_value.dart';
+part 'number_value.dart';
+part 'sequence_value.dart';
+part 'string_value.dart';
+part 'unknown_value.dart';
+part 'vector_value.dart';
 
 @immutable
 sealed class Value extends Equatable {
