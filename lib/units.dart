@@ -25,24 +25,42 @@ class UnitSet extends Equatable {
 
   final Map<Unit, int> _units;
 
-  Map<Dimension, int> get dimensions {
-    final dimensions = <Dimension, int>{};
+  DimensionSignature get dimensions {
+    var mass = 0;
+    var length = 0;
+    var time = 0;
+    var current = 0;
+    var temperature = 0;
     for (final MapEntry(key: unit, value: amount) in _units.entries) {
-      dimensions[Dimension.mass] = unit.dim.mass * amount;
-      dimensions[Dimension.length] = unit.dim.length * amount;
-      dimensions[Dimension.time] = unit.dim.time * amount;
-      dimensions[Dimension.current] = unit.dim.current * amount;
-      dimensions[Dimension.temperature] = unit.dim.temperature * amount;
+      mass += unit.dim.mass * amount;
+      length += unit.dim.length * amount;
+      time += unit.dim.time * amount;
+      current += unit.dim.current * amount;
+      temperature += unit.dim.temperature * amount;
     }
-    return dimensions;
+    return DimensionSignature(
+      mass: mass,
+      length: length,
+      time: time,
+      current: current,
+      temperature: temperature,
+    );
   }
 
-  double get multiplier {
-    var multiplier = 1.0;
+  num get multiplier {
+    num multiplier = 1;
     for (final MapEntry(key: unit, value: amount) in _units.entries) {
       multiplier *= math.pow(unit.multiplier, amount);
     }
     return multiplier;
+  }
+
+  num get offset {
+    num offset = 0;
+    for (final MapEntry(key: unit, value: amount) in _units.entries) {
+      offset += (unit.offset ?? 0) * amount;
+    }
+    return offset;
   }
 
   bool get isEmpty => _units.isEmpty;
@@ -104,7 +122,7 @@ enum Dimension {
 }
 
 @immutable
-class DimensionSignature {
+class DimensionSignature extends Equatable {
   const DimensionSignature({
     this.mass = 0,
     this.length = 0,
@@ -136,8 +154,8 @@ enum Unit {
   gram('g', ['g', 'gram', 'grams'], 0.001, mass),
 
   // Length
-  meter('m', ['meters', 'meter', 'm'], 1, length),
   milliMeter('mm', ['mm'], 0.001, length),
+  meter('m', ['meters', 'meter', 'm'], 1, length),
   centiMeter('cm', ['cm'], 0.01, length),
   deciMeter('dm', ['dm'], 0.1, length),
   decaMeter('dam', ['dam'], 10, length),
@@ -164,8 +182,8 @@ enum Unit {
 
   final String name;
   final List<String> names;
-  final double multiplier;
-  final double? offset;
+  final num multiplier;
+  final num? offset;
   final DimensionSignature dim;
 
   @override

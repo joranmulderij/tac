@@ -4,9 +4,10 @@ import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/units.dart';
 
+final _parser = _createParser();
+
 LinesExpr parse(String input) {
-  final parser = createParser();
-  final result = parser.parse(input);
+  final result = _parser.parse(input);
   return switch (result) {
     Failure(:final message, :final position) =>
       throw SyntaxError(message, position),
@@ -14,7 +15,7 @@ LinesExpr parse(String input) {
   };
 }
 
-Parser<Token<LinesExpr>> createParser() {
+Parser<Token<LinesExpr>> _createParser() {
   final builder = ExpressionBuilder<Token<Expr>>();
 
   final expr = builder.loopback;
@@ -55,6 +56,17 @@ Parser<Token<LinesExpr>> createParser() {
           (token.value[1] as UnitSet?) ?? UnitSet.empty,
         ),
       );
+  final float = (Tokens.floatPrefix &
+          (digit().plus() & (char('.') & digit().plus()).optional()).flatten() &
+          unitSet.optional())
+      .token()
+      .trimNoNewline()
+      .mapToken(
+        (token) => NumberExpr(
+          FloatNumber(num.parse(token.value[1] as String)),
+          (token.value[2] as UnitSet?) ?? UnitSet.empty,
+        ),
+      );
   final variable = (letter() | char('_'))
       .plus()
       .flatten()
@@ -73,38 +85,39 @@ Parser<Token<LinesExpr>> createParser() {
       .mapToken((token) {
     return StringExpr(token.value[1] as String);
   });
-  // final funCall = (expr & char('(') & expr & char(')')).map((value) {
-  // return FunCallExpr(
-  // value[0] as Expr,
-  // value[2] as Expr,
-  // );
-  // });
+  final emptySequence = (Tokens.openParen & Tokens.closeParen)
+      .map((value) => SequenceExpr([]))
+      .token();
+
   Parser<Token<T>> block<T extends Expr>(
     Parser<String> start,
     Parser<String> end,
     T Function(LinesExpr lines) blockFun,
-  ) =>
-      (start &
-              lineSeperator.star() &
-              expr.starSeparated(lineSeperator.plus()).token().mapToken(
-                    (token) => blockFun(
-                      LinesExpr(
-                        token.value.elements.map((e) => e.value).toList(),
-                      ),
+  ) {
+    return (start &
+            lineSeperator.star() &
+            expr.starSeparated(lineSeperator.plus()).token().mapToken(
+                  (token) => blockFun(
+                    LinesExpr(
+                      token.value.elements.map((e) => e.value).toList(),
                     ),
-                  ) &
-              lineSeperator.star() &
-              end)
-          .pick(2)
-          .cast<Token<T>>()
-          .value()
-          .token();
+                  ),
+                ) &
+            lineSeperator.star() &
+            end)
+        .pick(2)
+        .cast<Token<T>>()
+        .value()
+        .token();
+  }
 
+  builder.primitive(float);
   builder.primitive(decimal);
   builder.primitive(integer);
   builder.primitive(variable);
   builder.primitive(string1);
   builder.primitive(string2);
+  builder.primitive(emptySequence);
   builder.primitive(
     block<BlockedBlockExpr>(
       Tokens.openTripleBrace,
@@ -259,9 +272,21 @@ Parser<Token<LinesExpr>> createParser() {
   builder.group().left(Tokens.or, OperatorExpr.fromToken(Operator.or));
 
   // Function call
-  builder
-      .group()
-      .right(char('@').not().flatten().token(), SequencialExpr.fromToken);
+  // TODO: replace [char('@').not()] with a parser that never matches
+  builder.group()
+    ..right(char('@').not().flatten().token(), SequencialExpr.fromToken)
+    ..postfix(
+      [Tokens.openParen, Tokens.closeParen]
+          .toSequenceParser()
+          .flatten()
+          .token(),
+      (left, op) => Token(
+        SequencialExpr(left.value, SequenceExpr([])),
+        left.buffer + op.buffer,
+        left.start,
+        op.stop,
+      ),
+    );
 
   // Sequence
   builder.group().left(Tokens.comma, (left, op, right) {
@@ -296,15 +321,24 @@ Parser<Token<LinesExpr>> createParser() {
 
   // Pipe
   builder.group().left(
-        [Tokens.pipe, Tokens.pipeRight].toChoiceParser(),
+        [Tokens.pipe].toChoiceParser(),
         OperatorExpr.fromToken(Operator.pipe),
       );
 
   // Assignment
-  builder.group().right(
-        Tokens.assign,
-        OperatorExpr.fromToken(Operator.assign),
-      );
+  final assignmentGroup = builder.group();
+  for (final (token, operator) in [
+    (Tokens.assign, Operator.assign),
+    (Tokens.plusAssign, Operator.plusAssign),
+    (Tokens.minusAssign, Operator.minusAssign),
+    (Tokens.mulAssign, Operator.mulAssign),
+    (Tokens.divAssign, Operator.divAssign),
+  ]) {
+    assignmentGroup.right(
+      token,
+      OperatorExpr.fromToken(operator),
+    );
+  }
 
   final _ = builder.build();
 
@@ -336,10 +370,12 @@ class Tokens {
   static final comma = char(',').trimNoNewline();
 
   static final assign = char('=').trimNoNewline();
+  static final plusAssign = string('+=').trimNoNewline();
+  static final minusAssign = string('-=').trimNoNewline();
+  static final mulAssign = string('*=').trimNoNewline();
+  static final divAssign = string('/=').trimNoNewline();
 
   static final pipe = char('|').trimNoNewline();
-  // TODO: This gets interpreted as "|" and ">" where ">" is the print operator
-  static final pipeRight = string('|>').trimNoNewline();
 
   static final openParen = char('(').trimNoNewline();
   static final closeParen = char(')').trimNoNewline();
@@ -368,6 +404,8 @@ class Tokens {
   static final decrement = string('--').trimNoNewline();
 
   static final dot = char('.').trimNoNewline();
+
+  static final floatPrefix = string('0f').trimNoNewline();
 }
 
 extension MapTokenParser<T1> on Parser<Token<T1>> {
@@ -383,302 +421,3 @@ extension MapTokenParser<T1> on Parser<Token<T1>> {
 extension TrimParser<T> on Parser<T> {
   Parser<T> trimNoNewline() => trim(char(' '));
 }
-
-// class MyGrammarDefinition extends GrammarDefinition<BlockExpr> {
-//   @override
-//   Parser<BlockExpr> start() => ref0(lines).end();
-
-//   Parser<BlockExpr> lines() => ref0(expr)
-//       .plusSeparated(char(';'))
-//       .map((list) => BlockExpr(list.elements));
-
-//   Parser<Expr> expr() {
-//     final builder = ExpressionBuilder<Expr>();
-
-//     builder.primitive(exprFinal());
-
-//     builder.group().wrapper(
-//           char('('),
-//           char(')'),
-//           (left, value, right) => value,
-//         );
-
-//     builder.group()
-//       ..prefix(
-//         char('-'),
-//         (op, a) => UnaryExpr(UnaryOperator.neg, a),
-//       )
-//       ..prefix(
-//         char('!'),
-//         (op, a) => UnaryExpr(UnaryOperator.not, a),
-//       )
-//       ..prefix(
-//         char('>'),
-//         (op, a) => UnaryExpr(UnaryOperator.print, a),
-//       );
-
-//     builder.group().right(char('^'), OperatorExpr.fromToken(Operator.pow));
-
-//     builder.group()
-//       ..left(char('*'), OperatorExpr.fromToken(Operator.mul))
-//       ..left(char('/'), OperatorExpr.fromToken(Operator.div))
-//       ..left(char('%'), OperatorExpr.fromToken(Operator.mod));
-
-//     builder.group()
-//       ..left(char('+'), OperatorExpr.fromToken(Operator.add))
-//       ..left(char('-'), OperatorExpr.fromToken(Operator.sub));
-
-//     builder.group()
-//       ..left(char('<'), OperatorExpr.fromToken(Operator.lt))
-//       ..left(char('>'), OperatorExpr.fromToken(Operator.gt))
-//       ..left(string('=='), OperatorExpr.fromToken(Operator.eq))
-//       ..left(string('!='), OperatorExpr.fromToken(Operator.ne))
-//       ..left(string('<='), OperatorExpr.fromToken(Operator.lte))
-//       ..left(
-//         string('>='),
-//         OperatorExpr.fromToken(Operator.gte),
-//       );
-
-//     return builder.build();
-//   }
-
-//   Parser<Expr> exprAssign() => [
-//         ref0(exprPipe),
-//         [
-//           ref0(exprPipe),
-//           char('='),
-//           ref0(exprAssign),
-//         ].toSequenceParser().map((token) {
-//           return OperatorExpr(
-//             token.value[0] as Expr,
-//             Operator.assign,
-//             token.value[2] as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprPipe() => [
-//         ref0(exprFunCreate),
-//         [
-//           ref0(exprFunCreate),
-//           char('|'),
-//           ref0(exprPipe),
-//         ].toSequenceParser().map((value) {
-//           return OperatorExpr(
-//             value[0] as Expr,
-//             Operator.pipe,
-//             value[2] as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprFunCreate() => [
-//         ref0(exprSequence),
-//         [
-//           ref0(exprSequence),
-//           string('=>'),
-//           ref0(exprFunCreate),
-//         ].toSequenceParser().map((value) {
-//           return OperatorExpr(
-//             value[0] as Expr,
-//             Operator.funCreate,
-//             value[2] as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprSequence() =>
-//       ref0(exprComparison).plusSeparated(char(',')).map((value) {
-//         if (value.elements.length == 1) {
-//           return value.elements.first;
-//         }
-//         return SequenceExpr(value.elements);
-//       });
-
-//   Parser<Expr> exprComparison() => [
-//         ref0(exprAdd),
-//         [
-//           ref0(exprAdd),
-//           [
-//             char('<'),
-//             char('>'),
-//             string('=='),
-//             string('!='),
-//             char('<'),
-//             char('>'),
-//             string('<='),
-//           ].toChoiceParser().map((value) {
-//             final operatorMap = {
-//               '<': Operator.lt,
-//               '>': Operator.gt,
-//               '==': Operator.eq,
-//               '!=': Operator.ne,
-//               '<=': Operator.lte,
-//               '>=': Operator.gte,
-//             };
-//             return operatorMap[value];
-//           }),
-//           ref0(exprComparison),
-//         ].toSequenceParser().map((value) {
-//           return OperatorExpr(
-//             value[0]! as Expr,
-//             value[1]! as Operator,
-//             value[2]! as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprAdd() => [
-//         ref0(exprMul),
-//         [
-//           ref0(exprMul),
-//           [
-//             char('+'),
-//             char('-'),
-//           ].toChoiceParser().map((value) {
-//             final operatorMap = {
-//               '+': Operator.add,
-//               '-': Operator.sub,
-//             };
-//             return operatorMap[value];
-//           }),
-//           ref0(exprAdd),
-//         ].toSequenceParser().map((value) {
-//           return OperatorExpr(
-//             value[0]! as Expr,
-//             value[1]! as Operator,
-//             value[2]! as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprMul() => [
-//         ref0(exprPow),
-//         [
-//           ref0(exprPow),
-//           [
-//             char('*'),
-//             char('/'),
-//             char('%'),
-//           ].toChoiceParser().map((value) {
-//             final operatorMap = {
-//               '*': Operator.mul,
-//               '/': Operator.div,
-//               '%': Operator.mod,
-//             };
-//             return operatorMap[value];
-//           }),
-//           ref0(exprMul),
-//         ].toSequenceParser().map((value) {
-//           return OperatorExpr(
-//             value[0]! as Expr,
-//             value[1]! as Operator,
-//             value[2]! as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprPow() => [
-//         ref0(exprUnary),
-//         [
-//           ref0(exprUnary),
-//           char('^'),
-//           ref0(exprPow),
-//         ].toSequenceParser().map((value) {
-//           return OperatorExpr(
-//             value[0] as Expr,
-//             Operator.pow,
-//             value[2] as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprUnary() => [
-//         ref0(exprFunCall),
-//         [
-//           [
-//             char('-'),
-//             char('!'),
-//           ].toChoiceParser().map((value) {
-//             final operatorMap = {
-//               '-': UnaryOperator.neg,
-//               '!': UnaryOperator.not,
-//             };
-//             return operatorMap[value];
-//           }),
-//           ref0(exprUnary),
-//         ].toSequenceParser().map((value) {
-//           return UnaryExpr(
-//             value[0]! as UnaryOperator,
-//             value[1]! as Expr,
-//           );
-//         }).cast<Expr>(),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprFunCall() => [
-//         ref0(exprFinal),
-//         [
-//           ref0(exprFinal),
-//           char('('),
-//           ref0(expr).plusSeparated(char(',')).map((value) => value.elements),
-//           char(')'),
-//         ].toSequenceParser().map((value) {
-//           return FunCallExpr(
-//             value[0] as Expr,
-//             value[2] as Expr,
-//           );
-//         }),
-//       ].toChoiceParser();
-
-//   Parser<Expr> exprFinal() => [
-//         decimalExpr(),
-//         integerExpr(),
-//         variableExpr(),
-//         string1Expr(),
-//         string2Expr(),
-//         blockExpr(),
-//       ].toChoiceParser();
-
-//   Parser<Expr> integerExpr() =>
-//       digit().plus().flatten().map((str) => NumberExpr(Rational.parse(str)));
-
-//   Parser<Expr> decimalExpr() => [
-//         digit().star().flatten(),
-//         char('.'),
-//         digit().plus().flatten(),
-//       ].toSequenceParser().map((value) {
-//         return NumberExpr(Rational.parse(value.join()));
-//       });
-
-//   Parser<VariableExpr> variableExpr() =>
-//       letter().plus().flatten().map(VariableExpr.new);
-
-//   Parser<Expr> string1Expr() => [
-//         char('"'),
-//         any().starLazy(char('"')).map((list) {
-//           return list.join();
-//         }),
-//         char('"'),
-//       ].toSequenceParser().map((value) {
-//         return StringExpr(value[1]);
-//       });
-
-//   Parser<Expr> string2Expr() => [
-//         char("'"),
-//         any().starLazy(char("'")).map((list) {
-//           return list.join();
-//         }),
-//         char("'"),
-//       ].toSequenceParser().map((value) {
-//         return StringExpr(value[1]);
-//       });
-
-//   Parser<Expr> parenthExpr() =>
-//       char('(').seq(ref0(expr)).seq(char(')')).pick(1).cast<Expr>();
-
-//   Parser<Expr> blockExpr() => [
-//         char('{'),
-//         ref0(lines),
-//         char('}'),
-//       ].toSequenceParser().pick(1).cast<Expr>();
-// }

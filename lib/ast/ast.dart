@@ -50,13 +50,14 @@ class OperatorExpr extends Expr {
 
   static Token<OperatorExpr> Function(Token<Expr>, String, Token<Expr>)
       fromToken(
-    Operator operator,
-  ) {
+    Operator operator, {
+    Expr Function(Expr left, Expr right)? mapRight,
+  }) {
     return (left, op, right) => Token(
           OperatorExpr(
             left.value,
             operator,
-            right.value,
+            mapRight?.call(left.value, right.value) ?? right.value,
             left.start,
             right.stop,
           ),
@@ -71,34 +72,36 @@ class OperatorExpr extends Expr {
     Value leftValue() => left.run(state);
     Value rightValue() => right.run(state);
 
-    try {
-      return switch (op) {
-        Operator.add => leftValue().add(rightValue()),
-        Operator.sub => leftValue().sub(rightValue()),
-        Operator.mul => leftValue().mul(rightValue()),
-        Operator.div => leftValue().div(rightValue()),
-        Operator.mod => leftValue().mod(rightValue()),
-        Operator.pow => leftValue().pow(rightValue()),
-        Operator.lt => leftValue().lt(rightValue()),
-        Operator.gt => leftValue().gt(rightValue()),
-        Operator.eq => leftValue() == rightValue()
-            ? const BoolValue(true)
-            : const BoolValue(false),
-        Operator.ne => leftValue() != rightValue()
-            ? const BoolValue(true)
-            : const BoolValue(false),
-        Operator.lte => leftValue().lte(rightValue()),
-        Operator.gte => leftValue().gte(rightValue()),
-        Operator.assign => _assign(state, left, rightValue()),
-        Operator.pipe => _pipe(state, leftValue(), right),
-        Operator.funCreate => _funCreate(left, right),
-        Operator.and => throw UnimplementedError(),
-        Operator.or => throw UnimplementedError(),
-        Operator.getProperty => _getProperty(leftValue(), right),
-      };
-    } on BinaryOperatorTypeError catch (e) {
-      throw ErrorWithPositions(e, start, stop);
-    }
+    return switch (op) {
+      Operator.add => leftValue().add(rightValue()),
+      Operator.sub => leftValue().sub(rightValue()),
+      Operator.mul => leftValue().mul(rightValue()),
+      Operator.div => leftValue().div(rightValue()),
+      Operator.mod => leftValue().mod(rightValue()),
+      Operator.pow => leftValue().pow(rightValue()),
+      Operator.lt => leftValue().lt(rightValue()),
+      Operator.gt => leftValue().gt(rightValue()),
+      Operator.eq => leftValue() == rightValue()
+          ? const BoolValue(true)
+          : const BoolValue(false),
+      Operator.ne => leftValue() != rightValue()
+          ? const BoolValue(true)
+          : const BoolValue(false),
+      Operator.lte => leftValue().lte(rightValue()),
+      Operator.gte => leftValue().gte(rightValue()),
+      Operator.assign => _assign(state, left, rightValue()),
+      Operator.plusAssign =>
+        _assign(state, left, leftValue().add(rightValue())),
+      Operator.minusAssign =>
+        _assign(state, left, leftValue().sub(rightValue())),
+      Operator.mulAssign => _assign(state, left, leftValue().mul(rightValue())),
+      Operator.divAssign => _assign(state, left, leftValue().div(rightValue())),
+      Operator.pipe => _pipe(state, leftValue(), right),
+      Operator.funCreate => _funCreate(left, right),
+      Operator.and => throw UnimplementedError(),
+      Operator.or => throw UnimplementedError(),
+      Operator.getProperty => _getProperty(leftValue(), right),
+    };
   }
 
   Value _assign(State state, Expr left, Value rightValue) {
@@ -177,6 +180,10 @@ enum Operator {
   mod,
   pow,
   assign,
+  plusAssign,
+  minusAssign,
+  mulAssign,
+  divAssign,
   pipe,
   lt,
   gt,
@@ -198,7 +205,6 @@ class UnaryExpr extends Expr {
   @override
   Value run(State state) {
     Value value() => expr.run(state);
-    print(op);
     switch (op) {
       case UnaryOperator.not:
         return value().not();

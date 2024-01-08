@@ -16,16 +16,31 @@ final mathLibrary = {
   'sqrt': _mathFunction(math.sqrt),
   'log': _mathFunction(math.log),
   'exp': _mathFunction(math.exp),
-  'pi': const NumberValue(DoubleNumber(math.pi), UnitSet.empty),
-  'e': const NumberValue(DoubleNumber(math.e), UnitSet.empty),
+  'pi': const NumberValue(FloatNumber(math.pi), UnitSet.empty),
+  'e': const NumberValue(FloatNumber(math.e), UnitSet.empty),
 };
 
-DartFunctionValue _mathFunction(double Function(double) f) {
+DartFunctionValue _mathFunction(num Function(num) f) {
   return DartFunctionValue.from1Param(
     (state, arg) {
       if (arg case NumberValue(:final value)) {
+        var result = f(value.toNum());
+        if (result.roundToDouble() == result) {
+          result = result.toInt();
+        }
+        // if (result is int || result.roundToDouble() == result) {
+        //   return NumberValue(
+        //     Number.fromInt(result.toInt()),
+        //     UnitSet.empty,
+        //   );
+        // } else {
+        //   return NumberValue(
+        //     FloatNumber(result),
+        //     UnitSet.empty,
+        //   );
+        // }
         return NumberValue(
-          DoubleNumber(f(value.toDouble())),
+          FloatNumber(result),
           UnitSet.empty,
         );
       } else {

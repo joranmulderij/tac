@@ -1,5 +1,6 @@
 import 'package:ansicolor/ansicolor.dart';
 import 'package:dart_console/dart_console.dart';
+import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/units.dart';
 import 'package:tac_dart/value/value.dart';
@@ -26,17 +27,17 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
     const min = -10.0;
     const max = 10.0;
     final step = (max - min) / plotWidth;
-    final values = <double>[];
+    final values = <num>[];
     for (var x = min; x < max; x += step) {
       final value = arg.call(
         state,
-        [NumberValue(DoubleNumber(x), UnitSet.empty)],
+        [NumberValue(FloatNumber(x), UnitSet.empty)],
       );
       final number = switch (value) {
         NumberValue(:final value) => value,
-        _ => throw Exception('Not a number'),
+        _ => throw IncorrectTypeError('number', value.type),
       };
-      values.add(number.toDouble());
+      values.add(number.toNum());
     }
     final maxValue = values.reduce((a, b) => a > b ? a : b);
     final minValue = values.reduce((a, b) => a < b ? a : b);

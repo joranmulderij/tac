@@ -2,10 +2,9 @@ import 'dart:io' show stdin, stdout;
 
 import 'package:ansicolor/ansicolor.dart';
 import 'package:dart_console/dart_console.dart';
+import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/parser.dart';
 import 'package:tac_dart/state.dart';
-
-import 'errors.dart';
 
 final _redPen = AnsiPen()..red();
 final _greenPen = AnsiPen()..green();
@@ -34,12 +33,9 @@ void runRepl() {
       if (RegExp(r'^ *$').hasMatch(input) || RegExp(r'; *$').hasMatch(input)) {
         continue;
       }
-      console.writeLine();
       console.writeLine(
         _greenPen('  = ${value.toPrettyString()} '),
-        TextAlignment.right,
       );
-      console.writeLine();
     } on MyError catch (e) {
       console.writeLine(_redPen(e.toPrettyString()));
     }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:rational/rational.dart';
+import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
 sealed class Number {
@@ -8,10 +9,18 @@ sealed class Number {
 
   factory Number.fromInt(int value) => RationalNumber(Rational.fromInt(value));
 
+  factory Number.fromDouble(double value) =>
+      FloatNumber(double.parse(value.toString()));
+
+  factory Number.fromNum(num value) => switch (value) {
+        int() => Number.fromInt(value),
+        double() => Number.fromDouble(value),
+      };
+
   factory Number.fromString(String source) =>
       RationalNumber(Rational.parse(source));
 
-  double toDouble();
+  num toNum();
   int toInt();
   bool get isInteger;
 
@@ -37,11 +46,14 @@ class RationalNumber implements Number {
   final Rational _value;
 
   @override
-  double toDouble() => _value.toDouble();
+  num toNum() =>
+      _value.isInteger ? _value.toBigInt().toInt() : _value.toDouble();
 
   @override
   int toInt() {
-    if (!isInteger) throw Exception('Not an integer');
+    if (!isInteger) {
+      throw const CustomMyError('NumberError: Number is not an integer');
+    }
     return _value.toBigInt().toInt();
   }
 
@@ -51,71 +63,72 @@ class RationalNumber implements Number {
   @override
   Number operator +(Number other) => switch (other) {
         RationalNumber(_value: final value) => RationalNumber(_value + value),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(_value.toDouble() + value),
+        FloatNumber(_value: final value) =>
+          FloatNumber(_value.toDouble() + value),
       };
 
   @override
   Number operator -(Number other) => switch (other) {
         RationalNumber(_value: final value) => RationalNumber(_value - value),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(_value.toDouble() - value),
+        FloatNumber(_value: final value) =>
+          FloatNumber(_value.toDouble() - value),
       };
 
   @override
   Number operator *(Number other) => switch (other) {
         RationalNumber(_value: final value) => RationalNumber(_value * value),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(_value.toDouble() * value),
+        FloatNumber(_value: final value) =>
+          FloatNumber(_value.toDouble() * value),
       };
 
   @override
   Number operator /(Number other) => switch (other) {
         RationalNumber(_value: final value) => RationalNumber(_value / value),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(_value.toDouble() / value),
+        FloatNumber(_value: final value) =>
+          FloatNumber(_value.toDouble() / value),
       };
 
   @override
   Number operator %(Number other) => switch (other) {
         RationalNumber(_value: final value) => RationalNumber(_value % value),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(_value.toDouble() % value),
+        FloatNumber(_value: final value) =>
+          FloatNumber(_value.toDouble() % value),
       };
 
   @override
   Number pow(Number other) => switch (other) {
-        RationalNumber(_value: final value) =>
-          RationalNumber(_value.pow(value.toBigInt().toInt())),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(math.pow(_value.toDouble(), value.toInt()).toDouble()),
+        RationalNumber(_value: final value) => value.isInteger
+            ? RationalNumber(_value.pow(value.toBigInt().toInt()))
+            : FloatNumber(math.pow(_value.toDouble(), value.toDouble())),
+        FloatNumber(_value: final value) =>
+          FloatNumber(math.pow(_value.toDouble(), value.toInt()).toDouble()),
       };
 
   @override
   BoolValue operator <(Number other) => switch (other) {
         RationalNumber(_value: final value) => BoolValue(_value < value),
-        DoubleNumber(_value: final value) =>
+        FloatNumber(_value: final value) =>
           BoolValue(_value.toDouble() < value),
       };
 
   @override
   BoolValue operator >(Number other) => switch (other) {
         RationalNumber(_value: final value) => BoolValue(_value > value),
-        DoubleNumber(_value: final value) =>
+        FloatNumber(_value: final value) =>
           BoolValue(_value.toDouble() > value),
       };
 
   @override
   BoolValue operator <=(Number other) => switch (other) {
         RationalNumber(_value: final value) => BoolValue(_value <= value),
-        DoubleNumber(_value: final value) =>
+        FloatNumber(_value: final value) =>
           BoolValue(_value.toDouble() <= value),
       };
 
   @override
   BoolValue operator >=(Number other) => switch (other) {
         RationalNumber(_value: final value) => BoolValue(_value >= value),
-        DoubleNumber(_value: final value) =>
+        FloatNumber(_value: final value) =>
           BoolValue(_value.toDouble() >= value),
       };
 
@@ -126,13 +139,13 @@ class RationalNumber implements Number {
   String toString() => _value.toString();
 }
 
-class DoubleNumber implements Number {
-  const DoubleNumber(this._value);
+class FloatNumber implements Number {
+  const FloatNumber(this._value);
 
-  final double _value;
+  final num _value;
 
   @override
-  double toDouble() => _value;
+  num toNum() => _value;
 
   @override
   int toInt() {
@@ -147,77 +160,74 @@ class DoubleNumber implements Number {
   @override
   Number operator +(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
-          DoubleNumber(_value + value.toDouble()),
-        DoubleNumber(_value: final value) => DoubleNumber(_value + value),
+          FloatNumber(_value + value.toDouble()),
+        FloatNumber(_value: final value) => FloatNumber(_value + value),
       };
 
   @override
   Number operator -(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
-          DoubleNumber(_value - value.toDouble()),
-        DoubleNumber(_value: final value) => DoubleNumber(_value - value),
+          FloatNumber(_value - value.toDouble()),
+        FloatNumber(_value: final value) => FloatNumber(_value - value),
       };
 
   @override
   Number operator *(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
-          DoubleNumber(_value * value.toDouble()),
-        DoubleNumber(_value: final value) => DoubleNumber(_value * value),
+          FloatNumber(_value * value.toDouble()),
+        FloatNumber(_value: final value) => FloatNumber(_value * value),
       };
 
   @override
   Number operator /(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
-          DoubleNumber(_value / value.toDouble()),
-        DoubleNumber(_value: final value) => DoubleNumber(_value / value),
+          FloatNumber(_value / value.toDouble()),
+        FloatNumber(_value: final value) => FloatNumber(_value / value),
       };
 
   @override
   Number operator %(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
-          DoubleNumber(_value % value.toDouble()),
-        DoubleNumber(_value: final value) => DoubleNumber(_value % value),
+          FloatNumber(_value % value.toDouble()),
+        FloatNumber(_value: final value) => FloatNumber(_value % value),
       };
 
   @override
   Number pow(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
-          DoubleNumber(math.pow(_value, value.toDouble()).toDouble()),
-        DoubleNumber(_value: final value) =>
-          DoubleNumber(math.pow(_value, value).toDouble()),
+          FloatNumber(math.pow(_value, value.toDouble()).toDouble()),
+        FloatNumber(_value: final value) =>
+          FloatNumber(math.pow(_value, value).toDouble()),
       };
 
   @override
   BoolValue operator <(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
           BoolValue(_value < value.toDouble()),
-        DoubleNumber(_value: final value) => BoolValue(_value < value),
+        FloatNumber(_value: final value) => BoolValue(_value < value),
       };
 
   @override
   BoolValue operator >(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
           BoolValue(_value > value.toDouble()),
-        DoubleNumber(_value: final value) => BoolValue(_value > value),
+        FloatNumber(_value: final value) => BoolValue(_value > value),
       };
 
   @override
   BoolValue operator <=(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
           BoolValue(_value <= value.toDouble()),
-        DoubleNumber(_value: final value) => BoolValue(_value <= value),
+        FloatNumber(_value: final value) => BoolValue(_value <= value),
       };
 
   @override
   BoolValue operator >=(Number other) => switch (other) {
         RationalNumber(_value: final value) =>
           BoolValue(_value >= value.toDouble()),
-        DoubleNumber(_value: final value) => BoolValue(_value >= value),
+        FloatNumber(_value: final value) => BoolValue(_value >= value),
       };
 
   @override
-  Number operator -() => DoubleNumber(-_value);
-
-  @override
-  String toString() => _value.toString();
+  Number operator -() => FloatNumber(-_value);
 }

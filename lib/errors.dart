@@ -7,20 +7,15 @@ sealed class MyError implements Exception {
   String toPrettyString();
 }
 
-class ErrorWithPositions<T extends MyError> extends MyError {
-  const ErrorWithPositions(this.error, this.start, this.end) : super(start);
-  final T error;
-  final int start;
-  final int end;
+class CustomMyError extends MyError {
+  const CustomMyError(this.message) : super(0);
+  final String message;
 
   @override
-  String toString() => 'ErrorWithPositions($error, $start, $end)';
+  String toString() => 'CustomMyError($message, $position)';
 
   @override
-  String toPrettyString() {
-    return '  ${' ' * start}${'^' * (end - start)}\n'
-        '${error.toPrettyString()}';
-  }
+  String toPrettyString() => message;
 }
 
 class SyntaxError extends MyError {
