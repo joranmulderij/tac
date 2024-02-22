@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:tac_dart/errors.dart';
+import 'package:tac_dart/parser.dart';
 
 @immutable
 class UnitSet extends Equatable {
@@ -11,17 +12,16 @@ class UnitSet extends Equatable {
 
   factory UnitSet.parse(String input) {
     if (input.isEmpty) return UnitSet.empty;
-    final result = unitParser().parse(input);
+    _unitParser ??= unitParser();
+    final result = _unitParser!.parse(input);
     final units = switch (result) {
       Success() => result.value,
       Failure() => throw UnitParseError(input),
     };
-    final map = <Unit, int>{};
-    for (final unit in units) {
-      map[unit] = (map[unit] ?? 0) + 1;
-    }
-    return UnitSet(map);
+    return UnitSet(units);
   }
+
+  static Parser<Map<Unit, int>>? _unitParser;
 
   final Map<Unit, int> _units;
 
@@ -173,15 +173,24 @@ enum Unit {
   // Temperature
   kelvin('K', ['K'], 1, temperature),
   celsius('°C', ['oC', 'degC'], 1, temperature, offset: 273.15),
+  fahrenheit('°F', ['oF', 'degF'], 5 / 9, temperature, offset: 459.67),
 
   // Force
   newton('N', ['N'], 1, force),
   kiloNewton('kN', ['kN'], 1000, force);
 
-  const Unit(this.name, this.names, this.multiplier, this.dim, {this.offset});
+  //
+
+  const Unit(
+    this.name,
+    this.otherNames,
+    this.multiplier,
+    this.dim, {
+    this.offset,
+  });
 
   final String name;
-  final List<String> names;
+  final List<String> otherNames;
   final num multiplier;
   final num? offset;
   final DimensionSignature dim;
@@ -190,18 +199,28 @@ enum Unit {
   String toString() => name;
 }
 
-Parser<List<Unit>> unitParser() => Unit.values
-    .map(
-      (e) => (e.names.map(string).toChoiceParser().flatten() &
-              digit().star().flatten())
-          .map((token) {
-        final amountString = token[1] as String;
-        if (amountString.isEmpty) return [e];
-        final amount = int.parse(amountString);
-        return [for (var i = 0; i < amount; i++) e];
-      }),
-    )
-    .toChoiceParser()
-    .plus()
-    .map((value) => value.expand((element) => element).toList())
-    .end();
+Parser<Map<Unit, int>> unitParser() => Unit.values
+        .map(
+          (e) => ([e.name, ...e.otherNames]
+                      .map((name) => string(name).trimNoNewline())
+                      .toChoiceParser()
+                      .flatten() &
+                  (char('-').optional() & digit().star().flatten()).flatten())
+              .map((token) {
+            final amountString = token[1] as String;
+            if (amountString.isEmpty) return {e: 1};
+            final amount = int.parse(amountString);
+            return {e: amount};
+          }),
+        )
+        .toChoiceParser()
+        .plus()
+        .map((value) {
+      final map = <Unit, int>{};
+      for (final entry in value) {
+        for (final key in entry.keys) {
+          map[key] = entry[key]! + (map[key] ?? 0);
+        }
+      }
+      return map;
+    }).end();

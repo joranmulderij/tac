@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/libraries/math.dart';
+import 'package:tac_dart/libraries/rand.dart';
 import 'package:tac_dart/parser.dart';
 import 'package:tac_dart/state.dart';
 import 'package:tac_dart/value/value.dart';
@@ -67,6 +68,7 @@ Value _loadLibrary(State state, Value arg) {
       _ when path.startsWith('tac:') => switch (path.substring(4)) {
           'core' => ObjectValue(coreLibrary),
           'math' => ObjectValue(mathLibrary),
+          'rand' => ObjectValue(randLibrary),
           _ => throw UnimplementedError('Unknown "tac:" import: $path'),
         },
       _ => _loadLibraryFromPath(state, path),

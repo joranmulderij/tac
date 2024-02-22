@@ -3,6 +3,19 @@ part of 'value.dart';
 class DartFunctionValue extends Value {
   const DartFunctionValue(this.function, this.args);
 
+  factory DartFunctionValue.from0Params(
+    Value Function(State state) function,
+  ) =>
+      DartFunctionValue(
+        (state, args) {
+          if (args.isNotEmpty) {
+            throw ArgumentNumberError(0, args.length);
+          }
+          return function(state);
+        },
+        const [],
+      );
+
   factory DartFunctionValue.from1Param(
     Value Function(State state, Value arg) function,
     String arg,

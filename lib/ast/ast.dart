@@ -98,9 +98,25 @@ class OperatorExpr extends Expr {
       Operator.divAssign => _assign(state, left, leftValue().div(rightValue())),
       Operator.pipe => _pipe(state, leftValue(), right),
       Operator.funCreate => _funCreate(left, right),
-      Operator.and => throw UnimplementedError(),
-      Operator.or => throw UnimplementedError(),
+      Operator.and => _locicalAnd(leftValue(), rightValue()),
+      Operator.or => _locicalOr(leftValue(), rightValue()),
       Operator.getProperty => _getProperty(leftValue(), right),
+    };
+  }
+
+  Value _locicalOr(Value left, Value right) {
+    return switch ((left, right)) {
+      (BoolValue(value: final left), BoolValue(value: final right)) =>
+        BoolValue(left || right),
+      _ => throw const CustomMyError('dl')
+    };
+  }
+
+  Value _locicalAnd(Value left, Value right) {
+    return switch ((left, right)) {
+      (BoolValue(value: final left), BoolValue(value: final right)) =>
+        BoolValue(left && right),
+      _ => throw const CustomMyError('dl')
     };
   }
 

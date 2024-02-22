@@ -33,7 +33,9 @@ Parser<Token<LinesExpr>> _createParser() {
       );
 
   final unitSet = (Tokens.openBracket &
-          (letter() | digit()).star().flatten() &
+          (letter().trimNoNewline() | digit().trimNoNewline() | Tokens.minus)
+              .star()
+              .flatten() &
           Tokens.closeBracket)
       .map((values) => UnitSet.parse(values[1] as String));
 

@@ -13,7 +13,7 @@ void main() {
       expect(run('type {{}}'), '"object"');
     });
     test('import', () {
-      expect(run('sin = unknown; import "tac:math"; sin(0)'), '0.0');
+      expect(run('sin = unknown; import "tac:math"; sin(0)'), '0');
       // TODO:
       // expect(run('import "tac:does_not_exist"'), '0.0');
     });

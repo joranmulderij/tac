@@ -1,10 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:equatable/equatable.dart';
 import 'package:rational/rational.dart';
 import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
-sealed class Number {
+sealed class Number extends Equatable {
   const Number();
 
   factory Number.fromInt(int value) => RationalNumber(Rational.fromInt(value));
@@ -40,7 +41,7 @@ sealed class Number {
   static final Number one = RationalNumber(Rational.one);
 }
 
-class RationalNumber implements Number {
+class RationalNumber extends Number {
   const RationalNumber(this._value);
 
   final Rational _value;
@@ -101,7 +102,7 @@ class RationalNumber implements Number {
             ? RationalNumber(_value.pow(value.toBigInt().toInt()))
             : FloatNumber(math.pow(_value.toDouble(), value.toDouble())),
         FloatNumber(_value: final value) =>
-          FloatNumber(math.pow(_value.toDouble(), value.toInt()).toDouble()),
+          FloatNumber(math.pow(_value.toDouble(), value).toDouble()),
       };
 
   @override
@@ -137,9 +138,12 @@ class RationalNumber implements Number {
 
   @override
   String toString() => _value.toString();
+
+  @override
+  List<Object> get props => [_value];
 }
 
-class FloatNumber implements Number {
+class FloatNumber extends Number {
   const FloatNumber(this._value);
 
   final num _value;
@@ -230,4 +234,7 @@ class FloatNumber implements Number {
 
   @override
   Number operator -() => FloatNumber(-_value);
+
+  @override
+  List<Object?> get props => [_value];
 }

@@ -164,8 +164,9 @@ Number _unitsConvertMultiplier(UnitSet left, UnitSet right, Number value) {
   if (left.isEmpty || right.isEmpty) {
     return value;
   }
-  final multiplier =
-      Number.fromNum(right.multiplier) / Number.fromNum(left.multiplier);
-  final offset = Number.fromNum(right.offset - left.offset);
-  return value * multiplier + offset;
+  final normalized =
+      (value + Number.fromNum(right.offset)) * Number.fromNum(right.multiplier);
+  print(normalized.toNum());
+  return normalized / Number.fromNum(left.multiplier) -
+      Number.fromNum(left.offset);
 }

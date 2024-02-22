@@ -14,7 +14,8 @@ class ObjectValue extends Value {
   }
 
   @override
-  List<Object> get props => values.entries.toList();
+  List<Object> get props =>
+      values.entries.map((e) => (e.key, e.value)).toList();
 
   @override
   String get type => 'object';

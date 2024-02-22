@@ -10,7 +10,7 @@ part 'bool_value.dart';
 part 'dart_function_value.dart';
 part 'fun_value.dart';
 part 'list_value.dart';
-part 'map_value.dart';
+part 'object_value.dart';
 part 'number_value.dart';
 part 'sequence_value.dart';
 part 'string_value.dart';
