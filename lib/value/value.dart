@@ -10,8 +10,8 @@ part 'bool_value.dart';
 part 'dart_function_value.dart';
 part 'fun_value.dart';
 part 'list_value.dart';
-part 'object_value.dart';
 part 'number_value.dart';
+part 'object_value.dart';
 part 'sequence_value.dart';
 part 'string_value.dart';
 part 'unknown_value.dart';
@@ -49,4 +49,8 @@ sealed class Value extends Equatable {
   @override
   String toString();
   String toPrettyString() => toString();
+}
+
+abstract class ValueWithUnit {
+  UnitSet get unitSet;
 }

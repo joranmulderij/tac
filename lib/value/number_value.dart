@@ -2,10 +2,11 @@
 
 part of 'value.dart';
 
-class NumberValue extends Value {
+class NumberValue extends Value implements ValueWithUnit {
   const NumberValue(this.value, this.unitSet);
 
   final Number value;
+  @override
   final UnitSet unitSet;
 
   @override

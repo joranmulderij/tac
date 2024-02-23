@@ -8,24 +8,26 @@ void main(List<String> args) async {
     final reloader = await HotReloader.create();
     // ignore: avoid_print
     print('HotReloader listening.');
-    runRepl();
+    await runRepl(reloader);
+    print('HotReloader stopped.');
     await reloader.stop();
     // ignore: avoid_catching_errors
   } on StateError {
-    runRepl();
+    await runRepl();
   }
 }
 
 final _redPen = AnsiPen()..red();
 final _greenPen = AnsiPen()..green();
 
-void runRepl() {
+Future<void> runRepl([HotReloader? reloader]) async {
   final console = Console();
   final state = State();
   String? lastInput;
   while (true) {
     stdout.write('> ');
     var input = stdin.readLineSync();
+    await reloader?.reloadCode();
     if (input == null) continue;
     if (input == 'exit') {
       break;

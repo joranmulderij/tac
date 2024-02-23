@@ -1,7 +1,9 @@
 print('test.tac being loaded')
-a = 2
-return = {{
-  a=1
+a = 1[um]
+return {{
+  a=a
   b=2
   c=3
 }}
+
+print('this should not be printed')

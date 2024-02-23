@@ -144,42 +144,58 @@ class DimensionSignature extends Equatable {
 const mass = DimensionSignature(mass: 1);
 const length = DimensionSignature(length: 1);
 const time = DimensionSignature(time: 1);
-const current = DimensionSignature(time: 1);
 const temperature = DimensionSignature(temperature: 1);
 const force = DimensionSignature(mass: 1, length: 1, time: -2);
+const pressure = DimensionSignature(mass: 1, length: -1, time: -2);
+const energy = DimensionSignature(mass: 1, length: 2, time: -2);
+const power = DimensionSignature(mass: 1, length: 2, time: -3);
+
+const current = DimensionSignature(time: 1);
+const voltage = DimensionSignature(mass: 1, length: 2, time: -3, current: -1);
+const electricCharge = DimensionSignature(time: 1, current: 1);
+const resistance =
+    DimensionSignature(mass: 1, length: 2, time: -3, current: -2);
 
 enum Unit {
   // Mass
-  kiloGram('kg', ['kilograms', 'kilogram', 'kg'], 1, mass),
-  gram('g', ['g', 'gram', 'grams'], 0.001, mass),
+  microGram('µg', ['ug'], 0.000001, mass),
+  gram('g', ['grams', 'gram'], 0.001, mass),
+  kiloGram('kg', ['kilograms', 'kilogram'], 1, mass),
 
   // Length
-  milliMeter('mm', ['mm'], 0.001, length),
-  meter('m', ['meters', 'meter', 'm'], 1, length),
-  centiMeter('cm', ['cm'], 0.01, length),
-  deciMeter('dm', ['dm'], 0.1, length),
-  decaMeter('dam', ['dam'], 10, length),
-  hectoMeter('hm', ['hm'], 100, length),
-  kiloMeter('km', ['km'], 1000, length),
+  microMeter('µm', ['um'], 0.000001, length),
+  milliMeter('mm', [], 0.001, length),
+  meter('m', ['meters', 'meter'], 1, length),
+  centiMeter('cm', [], 0.01, length),
+  deciMeter('dm', [], 0.1, length),
+  decaMeter('dam', [], 10, length),
+  hectoMeter('hm', [], 100, length),
+  kiloMeter('km', [], 1000, length),
 
   // Time
-  second('s', ['s'], 1, time),
-  minute('min', ['min'], 60, time),
-  hour('h', ['h'], 3600, time),
+  second('s', [], 1, time),
+  minute('min', [], 60, time),
+  hour('h', [], 3600, time),
 
   // Current
-  ampere('A', ['A'], 1, current),
+  ampere('A', [], 1, current),
+
+  // Voltage
+  milliVolt('mV', [], 0.001, voltage),
+  volt('V', [], 1, voltage),
 
   // Temperature
-  kelvin('K', ['K'], 1, temperature),
+  kelvin('K', [], 1, temperature),
   celsius('°C', ['oC', 'degC'], 1, temperature, offset: 273.15),
   fahrenheit('°F', ['oF', 'degF'], 5 / 9, temperature, offset: 459.67),
 
   // Force
-  newton('N', ['N'], 1, force),
-  kiloNewton('kN', ['kN'], 1000, force);
+  newton('N', [], 1, force),
+  kiloNewton('kN', [], 1000, force),
 
-  //
+  // Energy
+  joule('J', [], 1, energy),
+  kiloJoule('kJ', [], 1000, energy);
 
   const Unit(
     this.name,
