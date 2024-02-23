@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:tac_dart/ast/ast.dart';
-import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/state.dart';
 import 'package:tac_dart/units.dart';
+import 'package:tac_dart/utils/errors.dart';
 
 part 'bool_value.dart';
 part 'dart_function_value.dart';

@@ -1,6 +1,6 @@
-import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/parser.dart';
 import 'package:tac_dart/state.dart';
+import 'package:tac_dart/utils/errors.dart';
 
 String run(String input) {
   final state = State();

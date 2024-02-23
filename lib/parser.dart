@@ -1,15 +1,15 @@
 import 'package:petitparser/petitparser.dart';
 import 'package:tac_dart/ast/ast.dart';
-import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/units.dart';
+import 'package:tac_dart/utils/errors.dart';
 
 final _parser = _createParser();
 
 LinesExpr parse(String input) {
   final result = _parser.parse(input);
   return switch (result) {
-    Failure(:final message, :final position) => throw MyError(message),
+    Failure(:final message) => throw MyError(message),
     Success(value: final token) => token.value,
   };
 }

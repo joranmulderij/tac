@@ -2,6 +2,7 @@ import 'dart:io' show stdin, stdout;
 
 import 'package:hotreloader/hotreloader.dart';
 import 'package:tac_dart/tac_dart.dart';
+import 'package:tac_dart/utils/console.dart';
 
 void main(List<String> args) async {
   try {
@@ -17,11 +18,7 @@ void main(List<String> args) async {
   }
 }
 
-final _redPen = AnsiPen()..red();
-final _greenPen = AnsiPen()..green();
-
 Future<void> runRepl([HotReloader? reloader]) async {
-  final console = Console();
   final state = State();
   String? lastInput;
   while (true) {
@@ -45,11 +42,11 @@ Future<void> runRepl([HotReloader? reloader]) async {
       if (RegExp(r'^ *$').hasMatch(input) || RegExp(r'; *$').hasMatch(input)) {
         continue;
       }
-      console.writeLine(
-        _greenPen('  = ${value.toPrettyString()} '),
+      stdout.writeln(
+        ConsoleUtils.green('  = ${value.toPrettyString()} '),
       );
     } on MyError catch (e) {
-      console.writeLine(_redPen(e.toString()));
+      stdout.writeln(ConsoleUtils.red(e.toString()));
     }
   }
 }

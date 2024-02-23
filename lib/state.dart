@@ -1,6 +1,7 @@
 import 'package:tac_dart/libraries/core.dart';
 import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/libraries/plot.dart';
+import 'package:tac_dart/utils/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
 class State {
@@ -26,11 +27,12 @@ class State {
       if (scope.variables.containsKey(name)) {
         final oldValue = scope.variables[name]!;
         if (oldValue is ValueWithUnit && value is ValueWithUnit) {
-          if ((value as ValueWithUnit).unitSet !=
-              (oldValue as ValueWithUnit).unitSet) {
-            final oldUnit = (oldValue as ValueWithUnit).unitSet;
-            // final newUnit = (value as ValueWithUnit).unitSet;
-            // throw const CustomMyError('Cannot change the unit of a variable.');
+          final oldUnit = (oldValue as ValueWithUnit).unitSet;
+          final newUnit = (value as ValueWithUnit).unitSet;
+          if (newUnit != oldUnit && name != '_') {
+            MyError.printWarning(
+              'Variable "$name" change it\'s unit dimension from "$oldUnit" to "$newUnit"',
+            );
           }
         }
         scope.variables[name] = value;

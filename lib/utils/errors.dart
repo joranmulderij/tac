@@ -1,9 +1,7 @@
 import 'dart:io';
 
-import 'package:ansicolor/ansicolor.dart';
+import 'package:tac_dart/utils/console.dart';
 import 'package:tac_dart/value/value.dart';
-
-final _orangePen = AnsiPen()..rgb(r: 255, g: 165, b: 0);
 
 class MyError implements Exception {
   const MyError(this.message);
@@ -51,7 +49,7 @@ class MyError implements Exception {
   String toString() => message;
 
   static void printWarning(String message) {
-    stdout.writeln(_orangePen('Warning: $message'));
+    stdout.writeln(ConsoleUtils.orange('Warning: $message'));
   }
 }
 

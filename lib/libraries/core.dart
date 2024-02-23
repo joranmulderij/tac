@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:tac_dart/ast/ast.dart';
-import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/libraries/rand.dart';
 import 'package:tac_dart/parser.dart';
 import 'package:tac_dart/state.dart';
+import 'package:tac_dart/utils/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
 final coreLibrary = {

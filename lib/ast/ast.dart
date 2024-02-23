@@ -1,8 +1,8 @@
 import 'package:petitparser/petitparser.dart';
-import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/state.dart';
 import 'package:tac_dart/units.dart';
+import 'package:tac_dart/utils/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
 sealed class Expr {

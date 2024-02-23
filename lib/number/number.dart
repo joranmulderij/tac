@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 import 'package:rational/rational.dart';
-import 'package:tac_dart/errors.dart';
+import 'package:tac_dart/utils/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
 sealed class Number extends Equatable {
