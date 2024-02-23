@@ -10,10 +10,14 @@ void main() {
     });
     test('Addition', () {
       expect(run('"Hello" + " " + "World"'), '"Hello World"');
-      expect(run('"Hello" + 1'),
-          'TypeError: Cannot apply operator "+" to types "string" and "number".');
-      expect(run('"Hello" + true'),
-          'TypeError: Cannot apply operator "+" to types "string" and "bool".');
+      expect(
+        run('"Hello" + 1'),
+        'TypeError: Cannot apply operator "+" to types "string" and "number".',
+      );
+      expect(
+        run('"Hello" + true'),
+        'TypeError: Cannot apply operator "+" to types "string" and "bool".',
+      );
     });
     test('Multiplication', () {
       expect(run('"Hello" * 3'), '"HelloHelloHello"');

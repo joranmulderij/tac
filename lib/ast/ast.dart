@@ -124,9 +124,20 @@ class OperatorExpr extends Expr {
     if (left case VariableExpr(:final name)) {
       state.set(name, rightValue);
       return rightValue;
-    } else {
-      throw Exception('Cannot assign to $left');
     }
+
+    if ((left, rightValue)
+        case (SequenceExpr(:final exprs), SequenceValue(:final values))) {
+      if (exprs.length != values.length) {
+        throw Exception('Cannot assign to sequence of different length');
+      }
+      for (var i = 0; i < exprs.length; i++) {
+        _assign(state, exprs[i], values[i]);
+      }
+      return rightValue;
+    }
+
+    throw Exception('Cannot assign to $left');
   }
 
   Value _funCreate(Expr left, Expr right) {
@@ -399,7 +410,13 @@ class BlockedBlockExpr extends Expr {
 }
 
 class SequenceExpr extends Expr {
-  SequenceExpr(this.exprs);
+  SequenceExpr(this.exprs)
+      : assert(exprs.isEmpty || exprs.length > 1,
+            'Sequence must have more than one expression'),
+        assert(
+          exprs.every((element) => element is! SequenceExpr),
+          'Sequence cannot contain another sequence',
+        );
   final List<Expr> exprs;
 
   @override

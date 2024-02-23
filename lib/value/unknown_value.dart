@@ -8,7 +8,4 @@ class UnknownValue extends Value {
 
   @override
   String toString() => 'unknown';
-
-  @override
-  List<Object> get props => [];
 }

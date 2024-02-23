@@ -13,9 +13,8 @@ void main() {
       expect(run('true == false'), 'false');
     });
     test('Operator precedence', () {
-      // TODO: create example that shows that && has higher precedence than ||
-      expect(run('false || true && false'), 'false');
-      expect(run('(false || true) && true'), 'true');
+      expect(run('true || false && false'), 'true');
+      expect(run('true && (false || false)'), 'false');
     });
   });
 }

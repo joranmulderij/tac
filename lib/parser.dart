@@ -20,7 +20,7 @@ Parser<Token<LinesExpr>> _createParser() {
   final expr = builder.loopback;
 
   final lineSeperator =
-      (char(';') | char('\n') | char('\r')).trimNoNewline().cast<void>();
+      (Tokens.semicolon | char('\n') | char('\r')).trimNoNewline().cast<void>();
 
   final lines = (expr.starSeparated(lineSeperator.plus()) &
           (lineSeperator | whitespace()).star())

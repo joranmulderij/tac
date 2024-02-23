@@ -2,7 +2,10 @@ import 'package:tac_dart/parser.dart';
 import 'package:tac_dart/state.dart';
 import 'package:tac_dart/utils/errors.dart';
 
+int _runCount = 0;
+
 String run(String input) {
+  _runCount++;
   final state = State();
   final ast = parse(input);
   try {
@@ -11,4 +14,9 @@ String run(String input) {
   } on MyError catch (e) {
     return e.toString();
   }
+}
+
+void printRunCount() {
+  // ignore: avoid_print
+  print('Number of runs: $_runCount');
 }

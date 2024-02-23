@@ -15,5 +15,9 @@ class BoolValue extends Value {
   String get type => 'bool';
 
   @override
-  List<Object> get props => [value];
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is BoolValue && other.value == value);
+
+  @override
+  int get hashCode => value.hashCode;
 }

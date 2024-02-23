@@ -127,7 +127,12 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   String toPrettyString() {
     if (value is FloatNumber) {
-      return '0f${value.toNum()}$unitSet';
+      final num = value.toNum().toDouble();
+      if (num.isNegative) {
+        return '-0f${-num}$unitSet';
+      } else {
+        return '0f$num$unitSet';
+      }
     } else if (value.isInteger) {
       return '$value$unitSet';
     } else {
@@ -150,7 +155,12 @@ class NumberValue extends Value implements ValueWithUnit {
   String get type => 'number';
 
   @override
-  List<Object> get props => [value, unitSet];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NumberValue && value == other.value && unitSet == other.unitSet;
+
+  @override
+  int get hashCode => value.hashCode ^ unitSet.hashCode;
 }
 
 UnitSet _checkUnitsEq(UnitSet left, UnitSet right) {
@@ -167,7 +177,6 @@ Number _unitsConvertMultiplier(UnitSet left, UnitSet right, Number value) {
   }
   final normalized =
       (value + Number.fromNum(right.offset)) * Number.fromNum(right.multiplier);
-  print(normalized.toNum());
   return normalized / Number.fromNum(left.multiplier) -
       Number.fromNum(left.offset);
 }

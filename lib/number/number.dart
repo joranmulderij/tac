@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 
-import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 import 'package:rational/rational.dart';
 import 'package:tac_dart/utils/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
-sealed class Number extends Equatable {
+@immutable
+sealed class Number {
   const Number();
 
   factory Number.fromInt(int value) => RationalNumber(Rational.fromInt(value));
@@ -34,6 +35,10 @@ sealed class Number extends Equatable {
   BoolValue operator >(Number other);
   BoolValue operator <=(Number other);
   BoolValue operator >=(Number other);
+  @override
+  bool operator ==(Object other);
+  @override
+  int get hashCode;
   Number operator -();
   Number pow(Number other);
 
@@ -140,7 +145,13 @@ class RationalNumber extends Number {
   String toString() => _value.toString();
 
   @override
-  List<Object> get props => [_value];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RationalNumber && other._value == _value) ||
+      (other is FloatNumber && other._value == _value.toDouble());
+
+  @override
+  int get hashCode => _value.hashCode;
 }
 
 class FloatNumber extends Number {
@@ -236,5 +247,11 @@ class FloatNumber extends Number {
   Number operator -() => FloatNumber(-_value);
 
   @override
-  List<Object?> get props => [_value];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FloatNumber && other._value == _value) ||
+      (other is RationalNumber && other._value.toDouble() == _value);
+
+  @override
+  int get hashCode => _value.hashCode;
 }

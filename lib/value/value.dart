@@ -1,4 +1,3 @@
-import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:tac_dart/ast/ast.dart';
 import 'package:tac_dart/number/number.dart';
@@ -18,7 +17,7 @@ part 'unknown_value.dart';
 part 'vector_value.dart';
 
 @immutable
-sealed class Value extends Equatable {
+sealed class Value {
   const Value();
   Value add(Value other) =>
       throw MyError.binaryOperatorTypeError('+', type, other.type);
@@ -47,8 +46,6 @@ sealed class Value extends Equatable {
       throw MyError.propertyAccessError(this, name);
 
   String get type;
-  @override
-  List<Object> get props;
   @override
   String toString();
   String toPrettyString() => toString();
