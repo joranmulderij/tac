@@ -9,6 +9,6 @@ String run(String input) {
     final value = ast.run(state);
     return value.toPrettyString();
   } on MyError catch (e) {
-    return e.toPrettyString();
+    return e.toString();
   }
 }

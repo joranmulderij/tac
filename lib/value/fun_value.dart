@@ -8,7 +8,7 @@ class FunValue extends Value {
   @override
   Value call(State state, List<Value> args) {
     if (this.args.length != args.length) {
-      throw ArgumentNumberError(this.args.length, args.length);
+      throw MyError.argumentLengthError(this.args.length, args.length);
     }
     state.pushScope();
     for (var i = 0; i < this.args.length; i++) {

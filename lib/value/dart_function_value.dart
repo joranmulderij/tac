@@ -9,7 +9,7 @@ class DartFunctionValue extends Value {
       DartFunctionValue(
         (state, args) {
           if (args.isNotEmpty) {
-            throw ArgumentNumberError(0, args.length);
+            throw MyError.argumentLengthError(0, args.length);
           }
           return function(state);
         },
@@ -23,7 +23,7 @@ class DartFunctionValue extends Value {
       DartFunctionValue(
         (state, args) {
           if (args.length != 1) {
-            throw ArgumentNumberError(1, args.length);
+            throw MyError.argumentLengthError(1, args.length);
           }
           return function(state, args[0]);
         },

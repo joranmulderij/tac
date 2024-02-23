@@ -5,15 +5,15 @@ import '../utils.dart';
 void main() {
   group('math', () {
     test('sin', () {
-      expect(run('sin(0)'), '0.0');
-      expect(run('sin(1)'), '0.8414709848078965');
-      expect(run('sin(2)'), '0.9092974268256817');
+      expect(run('sin(0)'), '0f0');
+      expect(run('sin(1)'), '0f0.8414709848078965');
+      expect(run('sin(2)'), '0f0.9092974268256817');
       expect(run('sin("1")'), 'TypeError: Expected number, got string.');
       expect(run('sin(1, 2)'), 'TypeError: Expected 1 arguments, got 2.');
     });
     test('cos', () {
-      expect(run('cos(0)'), '1.0');
-      expect(run('cos(1)'), '0.5403023058681398');
+      expect(run('cos(0)'), '0f1.0');
+      expect(run('cos(1)'), '0f0.5403023058681398');
       expect(run('cos(2)'), '-0.4161468365471424');
       expect(run('cos("1")'), 'TypeError: Expected number, got string.');
       expect(run('cos(1, 2)'), 'TypeError: Expected 1 arguments, got 2.');

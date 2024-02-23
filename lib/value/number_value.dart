@@ -64,7 +64,7 @@ class NumberValue extends Value implements ValueWithUnit {
             UnitSet.empty,
           );
         } else {
-          throw UnitsNotEqualError('1', unitSet.toString());
+          throw MyError.unexpectedUnit('', unitSet.toString());
         }
       default:
         return super.pow(other);
@@ -157,7 +157,7 @@ UnitSet _checkUnitsEq(UnitSet left, UnitSet right) {
   if (left.dimensions == right.dimensions) {
     return left; // also return a multiplier
   } else {
-    throw UnitsNotEqualError(left.toString(), right.toString());
+    throw MyError.unexpectedUnit(left.toString(), right.toString());
   }
 }
 

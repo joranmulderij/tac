@@ -44,7 +44,7 @@ DartFunctionValue _mathFunction(num Function(num) f) {
           UnitSet.empty,
         );
       } else {
-        throw IncorrectTypeError('number', arg.type);
+        throw MyError.unexpectedType('number', arg.type);
       }
     },
     'x',

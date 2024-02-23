@@ -16,7 +16,7 @@ class UnitSet extends Equatable {
     final result = _unitParser!.parse(input);
     final units = switch (result) {
       Success() => result.value,
-      Failure() => throw UnitParseError(input),
+      Failure() => throw MyError.unitParseError(input),
     };
     return UnitSet(units);
   }

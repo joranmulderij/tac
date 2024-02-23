@@ -35,7 +35,7 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
       );
       final number = switch (value) {
         NumberValue(:final value) => value,
-        _ => throw IncorrectTypeError('number', value.type),
+        _ => throw MyError.unexpectedType('number', value.type),
       };
       values.add(number.toNum());
     }

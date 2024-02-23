@@ -1,4 +1,3 @@
-import 'package:tac_dart/errors.dart';
 import 'package:tac_dart/libraries/core.dart';
 import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/libraries/plot.dart';
@@ -29,7 +28,9 @@ class State {
         if (oldValue is ValueWithUnit && value is ValueWithUnit) {
           if ((value as ValueWithUnit).unitSet !=
               (oldValue as ValueWithUnit).unitSet) {
-            throw const CustomMyError('Cannot change the unit of a variable.');
+            final oldUnit = (oldValue as ValueWithUnit).unitSet;
+            // final newUnit = (value as ValueWithUnit).unitSet;
+            // throw const CustomMyError('Cannot change the unit of a variable.');
           }
         }
         scope.variables[name] = value;

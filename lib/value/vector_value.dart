@@ -58,7 +58,7 @@ class VectorValue extends Value {
       'length' => NumberValue(Number.fromInt(value.length), UnitSet.empty),
       'cross' =>
         DartFunctionValue.from1Param((state, arg) => _cross(arg), 'other'),
-      _ => throw PropertyAccessError(this, name),
+      _ => throw MyError.propertyAccessError(this, name),
     };
   }
 

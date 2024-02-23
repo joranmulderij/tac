@@ -108,7 +108,7 @@ class OperatorExpr extends Expr {
     return switch ((left, right)) {
       (BoolValue(value: final left), BoolValue(value: final right)) =>
         BoolValue(left || right),
-      _ => throw const CustomMyError('dl')
+      _ => throw MyError.binaryOperatorTypeError('||', left.type, right.type)
     };
   }
 
@@ -116,7 +116,7 @@ class OperatorExpr extends Expr {
     return switch ((left, right)) {
       (BoolValue(value: final left), BoolValue(value: final right)) =>
         BoolValue(left && right),
-      _ => throw const CustomMyError('dl')
+      _ => throw MyError.binaryOperatorTypeError('&&', left.type, right.type)
     };
   }
 
@@ -136,13 +136,13 @@ class OperatorExpr extends Expr {
           .map(
             (expr) => switch (expr) {
               VariableExpr(:final name) => name,
-              _ => throw ExpectedIdentifierError(
+              _ => throw MyError.expectedIdentifier(
                   expr.runtimeType.toString(),
                 ),
             },
           )
           .toList(),
-      _ => throw ExpectedIdentifierError(left.runtimeType.toString()),
+      _ => throw MyError.expectedIdentifier(left.runtimeType.toString()),
     };
     return FunValue(args, right);
   }
@@ -150,7 +150,7 @@ class OperatorExpr extends Expr {
   Value _getProperty(Value left, Expr right) {
     final property = switch (right) {
       VariableExpr(:final name) => name,
-      _ => throw ExpectedIdentifierError(left.runtimeType.toString()),
+      _ => throw MyError.expectedIdentifier(left.runtimeType.toString()),
     };
     return left.getProperty(property);
   }

@@ -49,7 +49,7 @@ final DartFunctionValue _import = DartFunctionValue.from1Param(
         state.loadLibrary(values);
         return library;
       case Value():
-        throw IncorrectTypeError('object', library.type);
+        throw MyError.unexpectedType('object', library.type);
     }
   },
   'path',
@@ -75,7 +75,7 @@ Value _loadLibrary(State state, Value arg) {
     };
     return library;
   } else {
-    throw IncorrectTypeError('string', arg.type);
+    throw MyError.unexpectedType('string', arg.type);
   }
 }
 
@@ -87,7 +87,7 @@ Value _loadLibraryFromPath(State state, String path) {
     final block = BlockedBlockExpr(lines);
     return block.run(state);
   } on PathNotFoundException {
-    throw PathNotFoundError(path);
+    throw MyError.fileNotFound(path);
   }
 }
 
@@ -97,7 +97,7 @@ Value _eval = DartFunctionValue.from1Param(
       final ast = parse(input);
       return ast.run(state);
     } else {
-      throw IncorrectTypeError('string', arg.type);
+      throw MyError.unexpectedType('string', arg.type);
     }
   },
   'value',
@@ -109,10 +109,10 @@ Value _exit = DartFunctionValue.from1Param(
       if (code.isInteger) {
         exit(code.toInt());
       } else {
-        throw IncorrectTypeError('int', arg.type);
+        throw MyError.unexpectedType('int', arg.type);
       }
     } else {
-      throw IncorrectTypeError('int', arg.type);
+      throw MyError.unexpectedType('int', arg.type);
     }
   },
   'returnCode',

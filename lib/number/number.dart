@@ -53,7 +53,7 @@ class RationalNumber extends Number {
   @override
   int toInt() {
     if (!isInteger) {
-      throw const CustomMyError('NumberError: Number is not an integer');
+      throw MyError.notAnInteger();
     }
     return _value.toBigInt().toInt();
   }

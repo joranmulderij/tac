@@ -49,7 +49,7 @@ Future<void> runRepl([HotReloader? reloader]) async {
         _greenPen('  = ${value.toPrettyString()} '),
       );
     } on MyError catch (e) {
-      console.writeLine(_redPen(e.toPrettyString()));
+      console.writeLine(_redPen(e.toString()));
     }
   }
 }

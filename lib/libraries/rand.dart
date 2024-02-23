@@ -18,10 +18,10 @@ final randLibrary = {
             UnitSet.empty,
           );
         } else {
-          throw const IncorrectTypeError('integer', 'float');
+          throw MyError.unexpectedType('integer', 'float');
         }
       } else {
-        throw IncorrectTypeError('number', arg.type);
+        throw MyError.unexpectedType('number', arg.type);
       }
     },
     'max',

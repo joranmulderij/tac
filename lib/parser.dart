@@ -9,8 +9,7 @@ final _parser = _createParser();
 LinesExpr parse(String input) {
   final result = _parser.parse(input);
   return switch (result) {
-    Failure(:final message, :final position) =>
-      throw SyntaxError(message, position),
+    Failure(:final message, :final position) => throw MyError(message),
     Success(value: final token) => token.value,
   };
 }
