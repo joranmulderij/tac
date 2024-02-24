@@ -8,4 +8,11 @@ class UnknownValue extends Value {
 
   @override
   String toString() => 'unknown';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is UnknownValue;
+
+  @override
+  int get hashCode => 0;
 }

@@ -20,8 +20,9 @@ class ListValue extends Value {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ListValue && listEquals(other.values, values));
+      (other is ListValue &&
+          const ListEquality<Value>().equals(other.values, values));
 
   @override
-  int get hashCode => Object.hashAll(values);
+  int get hashCode => const ListEquality<Value>().hash(values);
 }

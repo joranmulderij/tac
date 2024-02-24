@@ -28,8 +28,13 @@ class FunValue extends Value {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is FunValue && listEquals(other.args, args) && other.body == body);
+      (other is FunValue &&
+          const ListEquality<String>().equals(other.args, args) &&
+          other.body == body);
 
   @override
-  int get hashCode => Object.hashAll([...args, body]);
+  int get hashCode => Object.hashAll([
+        const ListEquality<String>().hash(args),
+        body,
+      ]);
 }

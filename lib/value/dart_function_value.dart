@@ -46,9 +46,12 @@ class DartFunctionValue extends Value {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DartFunctionValue &&
-          listEquals(other.args, args) &&
+          const ListEquality<String>().equals(other.args, args) &&
           other.function == function);
 
   @override
-  int get hashCode => Object.hashAll([...args, function]);
+  int get hashCode => Object.hashAll([
+        const ListEquality<String>().hash(args),
+        function,
+      ]);
 }

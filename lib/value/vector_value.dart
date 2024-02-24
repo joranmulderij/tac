@@ -90,5 +90,11 @@ class VectorValue extends Value {
   String get type => 'vector';
 
   @override
-  List<Object> get props => [value];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VectorValue &&
+          const ListEquality<Value>().equals(value, other.value);
+
+  @override
+  int get hashCode => const ListEquality<Value>().hash(value);
 }

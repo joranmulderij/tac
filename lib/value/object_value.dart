@@ -14,10 +14,6 @@ class ObjectValue extends Value {
   }
 
   @override
-  List<Object> get props =>
-      values.entries.map((e) => (e.key, e.value)).toList();
-
-  @override
   String get type => 'object';
 
   @override
@@ -33,4 +29,13 @@ class ObjectValue extends Value {
     // ignore: lines_longer_than_80_chars
     return '{ ${values.entries.map((e) => '${e.key} = ${e.value.toPrettyString()}').join('; ')} }';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ObjectValue &&
+          const MapEquality<String, Value>().equals(values, other.values);
+
+  @override
+  int get hashCode => const MapEquality<String, Value>().hash(values);
 }

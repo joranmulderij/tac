@@ -24,8 +24,12 @@ class StringValue extends Value {
   String toPrettyString() => '"$value"';
 
   @override
-  List<Object> get props => [value];
+  String get type => 'string';
 
   @override
-  String get type => 'string';
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is StringValue && other.value == value);
+
+  @override
+  int get hashCode => value.hashCode;
 }
