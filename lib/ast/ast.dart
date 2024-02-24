@@ -411,8 +411,10 @@ class BlockedBlockExpr extends Expr {
 
 class SequenceExpr extends Expr {
   SequenceExpr(this.exprs)
-      : assert(exprs.isEmpty || exprs.length > 1,
-            'Sequence must have more than one expression'),
+      : assert(
+          exprs.isEmpty || exprs.length > 1,
+          'Sequence must have more than one expression',
+        ),
         assert(
           exprs.every((element) => element is! SequenceExpr),
           'Sequence cannot contain another sequence',

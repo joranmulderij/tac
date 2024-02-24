@@ -40,8 +40,15 @@ class DartFunctionValue extends Value {
   String get type => 'fun(${args.join(', ')})';
 
   @override
-  List<Object> get props => [function, args];
+  String toString() => 'fun(${args.join(', ')})';
 
   @override
-  String toString() => 'fun(${args.join(', ')})';
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DartFunctionValue &&
+          listEquals(other.args, args) &&
+          other.function == function);
+
+  @override
+  int get hashCode => Object.hashAll([...args, function]);
 }

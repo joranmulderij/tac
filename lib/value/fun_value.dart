@@ -23,8 +23,13 @@ class FunValue extends Value {
   String toString() => 'fun(${args.join(', ')})';
 
   @override
-  List<Object> get props => [args, body];
+  String get type => 'fun(${args.join(', ')})';
 
   @override
-  String get type => 'fun(${args.join(', ')})';
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FunValue && listEquals(other.args, args) && other.body == body);
+
+  @override
+  int get hashCode => Object.hashAll([...args, body]);
 }

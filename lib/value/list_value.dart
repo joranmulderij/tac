@@ -5,9 +5,6 @@ class ListValue extends Value {
   final List<Value> values;
 
   @override
-  List<Object> get props => values;
-
-  @override
   String get type => 'list';
 
   @override
@@ -19,4 +16,12 @@ class ListValue extends Value {
   String toPrettyString() {
     return '[${values.map((e) => e.toString()).join(', ')}]';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListValue && listEquals(other.values, values));
+
+  @override
+  int get hashCode => Object.hashAll(values);
 }

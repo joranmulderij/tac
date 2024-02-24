@@ -12,6 +12,7 @@ void main() {
       // Sequences cannot be nested
       expect(run('(1, 2, 3), 4'), '(1, 2, 3, 4)');
       expect(run('1, (2, 3)'), '(1, 2, 3)');
+      expect(run('(1, 2), (3, 4)'), '(1, 2, 3, 4)');
     });
   });
 }

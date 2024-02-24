@@ -160,22 +160,24 @@ Parser<Token<LinesExpr>> _createParser() {
     },
   );
 
-  builder.group().wrapper(
-    Tokens.lt.token(),
-    (Tokens.comma.optional() & Tokens.gt).token(),
-    (left, middle, right) {
-      final exprs = switch (middle.value) {
-        SequenceExpr(:final exprs) => exprs,
-        final expr => [expr],
-      };
-      return Token(
-        VectorExpr(exprs),
-        left.buffer + middle.buffer + right.buffer,
-        left.start,
-        right.stop,
-      );
-    },
-  );
+  // TODO: Find syntax for vectors
+  // Currently, they are not correctly parsed because of the < and > tokens
+  // builder.group().wrapper(
+  //   Tokens.lt.token(),
+  //   (Tokens.comma.optional() & Tokens.gt).token(),
+  //   (left, middle, right) {
+  //     final exprs = switch (middle.value) {
+  //       SequenceExpr(:final exprs) => exprs,
+  //       final expr => [expr],
+  //     };
+  //     return Token(
+  //       VectorExpr(exprs),
+  //       left.buffer + middle.buffer + right.buffer,
+  //       left.start,
+  //       right.stop,
+  //     );
+  //   },
+  // );
 
   // Property access
   builder.group().right(
@@ -291,8 +293,14 @@ Parser<Token<LinesExpr>> _createParser() {
 
   // Sequence
   builder.group().left(Tokens.comma, (left, op, right) {
-    final expr = switch (left.value) {
-      SequenceExpr(:final exprs) => SequenceExpr([...exprs, right.value]),
+    final expr = switch ((left.value, right.value)) {
+      (
+        SequenceExpr(exprs: final leftExprs),
+        SequenceExpr(exprs: final rightExprs)
+      ) =>
+        SequenceExpr([...leftExprs, ...rightExprs]),
+      (SequenceExpr(:final exprs), _) => SequenceExpr([...exprs, right.value]),
+      (_, SequenceExpr(:final exprs)) => SequenceExpr([left.value, ...exprs]),
       _ => SequenceExpr([left.value, right.value]),
     };
     return Token(expr, left.buffer, left.start, right.stop);

@@ -5,9 +5,6 @@ class SequenceValue extends Value {
   final List<Value> values;
 
   @override
-  List<Object> get props => values;
-
-  @override
   String get type => 'sequence';
 
   @override
@@ -19,4 +16,12 @@ class SequenceValue extends Value {
   String toPrettyString() {
     return '(${values.map((e) => e.toPrettyString()).join(', ')})';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SequenceValue && listEquals(other.values, values));
+
+  @override
+  int get hashCode => Object.hashAll(values);
 }
