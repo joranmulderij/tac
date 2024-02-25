@@ -46,6 +46,7 @@ void main() {
       expect(run('2/10902'), '1/5451 ≈ 0.000183452577508714');
       expect(run('1 / 2 / 3'), '1/6 ≈ 0.16666666666666666');
       expect(run('1 / 2 / 3 / 4'), '1/24 ≈ 0.041666666666666664');
+      expect(run('1 / 0'), 'NumberError: Division by zero');
     });
     test('exponents', () {
       expect(run('2 ^ 2'), '4');

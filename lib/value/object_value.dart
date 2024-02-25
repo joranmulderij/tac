@@ -18,11 +18,6 @@ class ObjectValue extends Value {
 
   @override
   String toString() {
-    return 'ObjectValue($values)';
-  }
-
-  @override
-  String toPrettyString() {
     if (values.isEmpty) {
       return '{}';
     }

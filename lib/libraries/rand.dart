@@ -7,12 +7,14 @@ import 'package:tac_dart/value/value.dart';
 
 final _randomObject = Random();
 
-// TODO: check for values that don't need to be computed, for example sin(0)
 final randLibrary = {
   'randint': DartFunctionValue.from1Param(
     (state, arg) {
       if (arg case NumberValue(:final value)) {
         if (value.isInteger) {
+          if (value.toInt() <= 0) {
+            throw MyError.negativeValue();
+          }
           return NumberValue(
             Number.fromInt(_randomObject.nextInt(value.toInt())),
             UnitSet.empty,
@@ -25,5 +27,11 @@ final randLibrary = {
       }
     },
     'max',
+  ),
+  'rand': DartFunctionValue.from0Params(
+    (state) => NumberValue(
+      Number.fromDouble(_randomObject.nextDouble()),
+      UnitSet.empty,
+    ),
   ),
 };

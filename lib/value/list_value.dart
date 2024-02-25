@@ -1,7 +1,16 @@
 part of 'value.dart';
 
 class ListValue extends Value {
-  const ListValue(this.values);
+  ListValue(Value value)
+      : values = switch (value) {
+          SequenceValue(:final values) => values,
+          _ => [value],
+        };
+
+  const ListValue.empty() : values = const [];
+
+  const ListValue.fromList(this.values);
+
   final List<Value> values;
 
   @override
@@ -9,12 +18,26 @@ class ListValue extends Value {
 
   @override
   String toString() {
-    return 'ListValue(${values.join(', ')})';
+    return '[${values.map((e) => e.toString()).join(', ')}]';
   }
 
   @override
-  String toPrettyString() {
-    return '[${values.map((e) => e.toString()).join(', ')}]';
+  Value call(State state, List<Value> args) {
+    if (args.length != 1) {
+      throw MyError.argumentLengthError(1, args.length);
+    }
+    final arg = args[0];
+    if (arg is! NumberValue) {
+      throw MyError.unexpectedType('number', arg.type);
+    }
+    if (!arg.value.isInteger) {
+      throw MyError.notAnInteger();
+    }
+    final index = arg.value.toInt();
+    if (index < 0 || index >= values.length) {
+      throw MyError.indexOutOfBounds(index, values.length);
+    }
+    return values[index];
   }
 
   @override

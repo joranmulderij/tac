@@ -16,7 +16,7 @@ void main() {
       expect(run('sin = unknown; import "tac:math"; sin(0)'), '0f0.0');
       expect(
         run('import "tac:anything"'),
-        'Error: Unknown library "tac:anything"',
+        'UnknownLibraryError: Could not find library "tac:anything"',
       );
       expect(run('import "test/libraries/test1.tac"; (a, b, c)'), '(1, 2, 3)');
       expect(run('import "test/libraries/test2.tac"; (a, b, c)'), '(1, 2, 3)');
@@ -30,7 +30,7 @@ void main() {
       expect(run('math = load "tac:math"; math.sin(0)'), '0f0.0');
       expect(
         run('import "tac:anything"'),
-        'Error: Unknown library "tac:anything"',
+        'UnknownLibraryError: Could not find library "tac:anything"',
       );
       expect(run('load "test/libraries/test1.tac"'), '{ a = 1; b = 2; c = 3 }');
       expect(run('load "test/libraries/test2.tac"'), '{ a = 1; b = 2; c = 3 }');

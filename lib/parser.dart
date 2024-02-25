@@ -89,6 +89,9 @@ Parser<Token<LinesExpr>> _createParser() {
   final emptySequence = (Tokens.openParen & Tokens.closeParen)
       .map((value) => SequenceExpr([]))
       .token();
+  final emptyList = (Tokens.openBracket & Tokens.closeBracket)
+      .map((value) => ListExpr(null))
+      .token();
 
   Parser<Token<T>> block<T extends Expr>(
     Parser<String> start,
@@ -119,6 +122,7 @@ Parser<Token<LinesExpr>> _createParser() {
   builder.primitive(string1);
   builder.primitive(string2);
   builder.primitive(emptySequence);
+  builder.primitive(emptyList);
   builder.primitive(
     block<BlockedBlockExpr>(
       Tokens.openTripleBrace,
@@ -147,12 +151,8 @@ Parser<Token<LinesExpr>> _createParser() {
     Tokens.openBracket.token(),
     (Tokens.comma.optional() & Tokens.closeBracket).token(),
     (left, middle, right) {
-      final exprs = switch (middle.value) {
-        SequenceExpr(:final exprs) => exprs,
-        final expr => [expr],
-      };
       return Token(
-        ListExpr(exprs),
+        ListExpr(middle.value),
         left.buffer + middle.buffer + right.buffer,
         left.start,
         right.stop,
@@ -186,6 +186,15 @@ Parser<Token<LinesExpr>> _createParser() {
       );
 
   builder.group()
+    ..prefix(
+      Tokens.spread.token(),
+      (op, a) => Token(
+        UnaryExpr(UnaryOperator.spread, a.value),
+        op.buffer + a.buffer,
+        op.start,
+        a.stop,
+      ),
+    )
     ..prefix(
       Tokens.exclaimark.token(),
       (op, a) => Token(
@@ -329,10 +338,15 @@ Parser<Token<LinesExpr>> _createParser() {
   );
 
   // Pipe
-  builder.group().left(
-        [Tokens.pipe].toChoiceParser(),
-        OperatorExpr.fromToken(Operator.pipe),
-      );
+  builder.group()
+    ..left(
+      [Tokens.pipeWhere].toChoiceParser(),
+      OperatorExpr.fromToken(Operator.pipeWhere),
+    )
+    ..left(
+      [Tokens.pipe].toChoiceParser(),
+      OperatorExpr.fromToken(Operator.pipe),
+    );
 
   // Assignment
   final assignmentGroup = builder.group();
@@ -385,6 +399,7 @@ class Tokens {
   static final divAssign = string('/=').trimNoNewline();
 
   static final pipe = char('|').trimNoNewline();
+  static final pipeWhere = string('|?').trimNoNewline();
 
   static final openParen = char('(').trimNoNewline();
   static final closeParen = char(')').trimNoNewline();
@@ -405,6 +420,8 @@ class Tokens {
   static final colon = char(':').trimNoNewline();
 
   static final funCreate = string('=>').trimNoNewline();
+
+  static final spread = string('...').trimNoNewline();
 
   static final exclaimark = char('!').trimNoNewline();
   static final questionmark = char('?').trimNoNewline();

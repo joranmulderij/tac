@@ -1,13 +1,14 @@
 import 'package:tac_dart/libraries/core.dart';
 import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/libraries/plot.dart';
-import 'package:tac_dart/utils/errors.dart';
 import 'package:tac_dart/value/value.dart';
 
 class State {
-  State() : scopes = [Scope(ScopeProtectionLevel.blocked)];
+  State({required this.onPrint})
+      : scopes = [Scope(ScopeProtectionLevel.blocked)];
 
   final List<Scope> scopes;
+  final void Function(String) onPrint;
 
   Value get(String name) {
     for (final scope in scopes.reversed) {
@@ -30,7 +31,7 @@ class State {
           final oldUnit = (oldValue as ValueWithUnit).unitSet;
           final newUnit = (value as ValueWithUnit).unitSet;
           if (newUnit != oldUnit && name != '_') {
-            MyError.printWarning(
+            printWarning(
               'Variable "$name" change it\'s unit dimension from "$oldUnit" to "$newUnit"',
             );
           }
@@ -63,6 +64,14 @@ class State {
 
   Scope popScope() {
     return scopes.removeLast();
+  }
+
+  void print(String message) {
+    onPrint(message);
+  }
+
+  void printWarning(String message) {
+    onPrint('Warning: $message');
   }
 }
 

@@ -19,7 +19,7 @@ void main(List<String> args) async {
 }
 
 Future<void> runRepl([HotReloader? reloader]) async {
-  final state = State();
+  final state = State(onPrint: stdout.writeln);
   String? lastInput;
   while (true) {
     stdout.write('> ');
@@ -47,6 +47,10 @@ Future<void> runRepl([HotReloader? reloader]) async {
       );
     } on MyError catch (e) {
       stdout.writeln(ConsoleUtils.red(e.toString()));
+    } catch (e, st) {
+      stdout.writeln(ConsoleUtils.red('Unexpected error:'));
+      stdout.writeln(ConsoleUtils.red(e.toString()));
+      stdout.writeln(ConsoleUtils.red(st.toString()));
     }
   }
 }

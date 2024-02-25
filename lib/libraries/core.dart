@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:tac_dart/ast/ast.dart';
+import 'package:tac_dart/libraries/http.dart';
 import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/libraries/rand.dart';
 import 'package:tac_dart/parser.dart';
@@ -69,6 +70,7 @@ Value _loadLibrary(State state, Value arg) {
           'core' => ObjectValue(coreLibrary),
           'math' => ObjectValue(mathLibrary),
           'rand' => ObjectValue(randLibrary),
+          'http' => ObjectValue(httpLibrary),
           _ => throw MyError.unknownLibrary(path),
         },
       _ => _loadLibraryFromPath(state, path),

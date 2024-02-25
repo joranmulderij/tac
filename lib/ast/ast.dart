@@ -89,14 +89,17 @@ class OperatorExpr extends Expr {
           : const BoolValue(false),
       Operator.lte => leftValue().lte(rightValue()),
       Operator.gte => leftValue().gte(rightValue()),
-      Operator.assign => _assign(state, left, rightValue()),
+      Operator.assign => _assign(state, left, right),
       Operator.plusAssign =>
-        _assign(state, left, leftValue().add(rightValue())),
+        _assignValue(state, left, leftValue().add(rightValue())),
       Operator.minusAssign =>
-        _assign(state, left, leftValue().sub(rightValue())),
-      Operator.mulAssign => _assign(state, left, leftValue().mul(rightValue())),
-      Operator.divAssign => _assign(state, left, leftValue().div(rightValue())),
+        _assignValue(state, left, leftValue().sub(rightValue())),
+      Operator.mulAssign =>
+        _assignValue(state, left, leftValue().mul(rightValue())),
+      Operator.divAssign =>
+        _assignValue(state, left, leftValue().div(rightValue())),
       Operator.pipe => _pipe(state, leftValue(), right),
+      Operator.pipeWhere => _pipeWhere(state, leftValue(), right),
       Operator.funCreate => _funCreate(left, right),
       Operator.and => _locicalAnd(leftValue(), rightValue()),
       Operator.or => _locicalOr(leftValue(), rightValue()),
@@ -120,7 +123,40 @@ class OperatorExpr extends Expr {
     };
   }
 
-  Value _assign(State state, Expr left, Value rightValue) {
+  Value _assign(State state, Expr left, Expr right) {
+    if (left case SequencialExpr(left: final nameExpr, right: final argExpr)) {
+      if (nameExpr case (VariableExpr(:final name))) {
+        if (argExpr case VariableExpr(name: final arg)) {
+          final fun = FunValue([arg], right);
+          state.set(name, fun);
+          return fun;
+        } else if (argExpr case SequenceExpr(exprs: final argExprs)) {
+          final args = argExprs
+              .map(
+                (expr) => switch (expr) {
+                  VariableExpr(:final name) => name,
+                  _ => throw MyError.expectedIdentifier(
+                      expr.runtimeType.toString(),
+                    ),
+                },
+              )
+              .toList();
+          final fun = FunValue(args, right);
+          state.set(name, fun);
+          return fun;
+        } else {
+          throw MyError.expectedIdentifier(argExpr.runtimeType.toString());
+        }
+      } else {
+        throw MyError.expectedIdentifier(nameExpr.runtimeType.toString());
+      }
+    }
+
+    final rightValue = right.run(state);
+    return _assignValue(state, left, rightValue);
+  }
+
+  Value _assignValue(State state, Expr left, Value rightValue) {
     if (left case VariableExpr(:final name)) {
       state.set(name, rightValue);
       return rightValue;
@@ -132,7 +168,7 @@ class OperatorExpr extends Expr {
         throw Exception('Cannot assign to sequence of different length');
       }
       for (var i = 0; i < exprs.length; i++) {
-        _assign(state, exprs[i], values[i]);
+        _assignValue(state, exprs[i], values[i]);
       }
       return rightValue;
     }
@@ -175,10 +211,13 @@ class OperatorExpr extends Expr {
       switch (result) {
         case DartFunctionValue(:final args):
         case FunValue(:final args):
-          if (args.length != 1) {
-            throw Exception('Pipe function must have exactly one argument');
+          if (args.isEmpty) {
+            return result.call(state, []);
           }
-          return result.call(state, [value]);
+          if (args.length == 1) {
+            return result.call(state, [value]);
+          }
+          throw MyError.argumentLengthError(1, args.length);
         default:
           return result;
       }
@@ -188,11 +227,74 @@ class OperatorExpr extends Expr {
       case NumberValue(value: final number, :final unitSet):
         final result = <Value>[];
         for (var i = 0; i < number.toInt(); i++) {
-          result.add(runPipe(NumberValue(Number.fromInt(i), unitSet)));
+          final returned = runPipe(NumberValue(Number.fromInt(i), unitSet));
+          switch (returned) {
+            case SequenceValue(:final values):
+              result.addAll(values);
+            default:
+              result.add(returned);
+          }
         }
-        return ListValue(result);
+        return ListValue.fromList(result);
       case ListValue(values: final list):
-        return ListValue(list.map(runPipe).toList());
+        final result = <Value>[];
+        for (final value in list) {
+          final returned = runPipe(value);
+          switch (returned) {
+            case SequenceValue(:final values):
+              result.addAll(values);
+            default:
+              result.add(returned);
+          }
+        }
+        return ListValue.fromList(result);
+      default:
+        return runPipe(left);
+    }
+  }
+
+  Value _pipeWhere(State state, Value left, Expr right) {
+    Value runPipe(Value value) {
+      state.pushScope();
+      state.set('_', value);
+      final result = right.run(state);
+      state.popScope();
+      switch (result) {
+        case DartFunctionValue(:final args):
+        case FunValue(:final args):
+          if (args.isEmpty) {
+            return result.call(state, []);
+          }
+          if (args.length == 1) {
+            return result.call(state, [value]);
+          }
+          throw MyError.argumentLengthError(1, args.length);
+        default:
+          return result;
+      }
+    }
+
+    switch (left) {
+      case NumberValue(value: final number, :final unitSet):
+        final result = <Value>[];
+        for (var i = 0; i < number.toInt(); i++) {
+          final condition = runPipe(NumberValue(Number.fromInt(i), unitSet));
+          if (condition case BoolValue(:final value) when value) {
+            result.add(NumberValue(Number.fromInt(i), unitSet));
+          }
+        }
+        return ListValue.fromList(result);
+      case ListValue(values: final list):
+        return ListValue.fromList(
+          list.where((value) {
+            final condition = runPipe(value);
+            if (condition case BoolValue(:final value)) {
+              return value;
+            } else {
+              throw MyError.unexpectedType('bool', condition.type);
+            }
+          }).toList(),
+        );
       default:
         return runPipe(left);
     }
@@ -212,6 +314,7 @@ enum Operator {
   mulAssign,
   divAssign,
   pipe,
+  pipeWhere,
   lt,
   gt,
   eq,
@@ -265,22 +368,11 @@ class UnaryExpr extends Expr {
           default:
             throw MyError.expectedIdentifier(expr.runtimeType.toString());
         }
-      // case UnaryOperator.postInc || UnaryOperator.postDec:
-      //   switch (expr) {
-      //     case VariableExpr(:final name):
-      //       final value = state.get(name);
-      //       state.set(
-      //         name,
-      //         switch (op) {
-      //           UnaryOperator.postInc => value.add(NumberValue.one),
-      //           UnaryOperator.postDec => value.sub(NumberValue.one),
-      //           _ => value,
-      //         },
-      //       );
-      //       return value;
-      //     default:
-      //       throw MyError.expectedIdentifier(expr.runtimeType.toString());
-      //   }
+      case UnaryOperator.spread:
+        return switch (value()) {
+          ListValue(values: final values) => SequenceValue(values),
+          _ => throw MyError.unexpectedType('list', value().type),
+        };
     }
   }
 
@@ -299,6 +391,7 @@ enum UnaryOperator {
   postInc,
   postDec,
   print,
+  spread,
 }
 
 class TernaryExpr extends Expr {
@@ -339,6 +432,8 @@ class SequencialExpr extends Expr {
     switch (leftValue) {
       case DartFunctionValue():
       case FunValue():
+      case ListValue():
+      case SequenceValue():
         final rightValue = right.run(state);
         final argValues = switch (rightValue) {
           SequenceValue(values: final values) => values,
@@ -351,6 +446,9 @@ class SequencialExpr extends Expr {
           true => right.run(state),
           false => const UnknownValue(),
         };
+      // case ListValue():
+      // final rightValue = right.run(state);
+
       default:
         final rightValue = right.run(state);
         return leftValue.mul(rightValue);
@@ -478,15 +576,14 @@ class VectorExpr extends Expr {
 }
 
 class ListExpr extends Expr {
-  ListExpr(this.exprs);
-  final List<Expr> exprs;
+  ListExpr(this.expr);
+
+  final Expr? expr;
 
   @override
   Value run(State state) {
-    final values = <Value>[];
-    for (final expr in exprs) {
-      values.add(expr.run(state));
-    }
-    return ListValue(values);
+    final value = expr?.run(state);
+    if (value == null) return const ListValue.empty();
+    return ListValue(value);
   }
 }

@@ -3,23 +3,22 @@ description: A sample command-line application.
 version: 1.0.0
 publish_to: 'none'
 # repository: https://github.com/my_org/my_repo
-
 environment:
   sdk: ^3.1.0
 
 # Add regular dependencies here.
 dependencies:
+  ansicolor: ^2.0.1
+  collection: ^1.18.0
+  dart_console2: ^3.0.0
+  equatable: ^2.0.5
+  hotreloader: ^4.1.0
+  meta: ^1.11.0
   petitparser:
     git:
       url: https://github.com/joranmulderij/dart-petitparser
   rational: ^2.2.2
-  meta: ^1.11.0
-  equatable: ^2.0.5
-  ansicolor: ^2.0.1
-  collection: ^1.18.0
-  dart_console2: ^3.0.0
-  hotreloader: ^4.1.0
-  # path: ^1.8.0
+  sync_http: ^0.3.1
 
 dev_dependencies:
   lints: ^2.0.0

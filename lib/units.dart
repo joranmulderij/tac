@@ -65,9 +65,6 @@ class UnitSet extends Equatable {
 
   bool get isEmpty => _units.isEmpty;
 
-  UnitSet operator *(int other) =>
-      UnitSet(_units.map((key, value) => MapEntry(key, value * other)));
-
   @override
   String toString() {
     if (_units.isEmpty) return '';

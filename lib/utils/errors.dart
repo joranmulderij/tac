@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:tac_dart/utils/console.dart';
 import 'package:tac_dart/value/value.dart';
 
 class MyError implements Exception {
@@ -48,16 +45,17 @@ class MyError implements Exception {
   MyError.divisionByZero() : message = 'NumberError: Division by zero';
 
   MyError.unknownLibrary(String library)
-      : message = 'Error: Unknown library "$library"';
+      : message = 'UnknownLibraryError: Could not find library "$library"';
+
+  MyError.indexOutOfBounds(int index, int length)
+      : message = 'IndexError: Index $index out of range for length $length';
+
+  MyError.negativeValue() : message = 'NumberError: Value cannot be negative';
 
   final String message;
 
   @override
   String toString() => message;
-
-  static void printWarning(String message) {
-    stdout.writeln(ConsoleUtils.orange('Warning: $message'));
-  }
 }
 
 class ReturnException implements Exception {

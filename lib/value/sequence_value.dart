@@ -8,12 +8,26 @@ class SequenceValue extends Value {
   String get type => 'sequence';
 
   @override
-  String toString() {
-    return 'SequenceValue(${values.join(', ')})';
+  Value call(State state, List<Value> args) {
+    if (args.length != 1) {
+      throw MyError.argumentLengthError(1, args.length);
+    }
+    final arg = args[0];
+    if (arg is! NumberValue) {
+      throw MyError.unexpectedType('number', arg.type);
+    }
+    if (!arg.value.isInteger) {
+      throw MyError.notAnInteger();
+    }
+    final index = arg.value.toInt();
+    if (index < 0 || index >= values.length) {
+      throw MyError.indexOutOfBounds(index, values.length);
+    }
+    return values[index];
   }
 
   @override
-  String toPrettyString() {
+  String toString() {
     return '(${values.map((e) => e.toPrettyString()).join(', ')})';
   }
 

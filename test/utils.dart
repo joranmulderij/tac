@@ -5,14 +5,24 @@ import 'package:tac_dart/utils/errors.dart';
 int _runCount = 0;
 
 String run(String input) {
+  return runWithPrint(input).$2;
+}
+
+(String, String) runWithPrint(String input) {
   _runCount++;
-  final state = State();
+  final printBuffer = StringBuffer();
+  String getPrintBuffer() {
+    if (printBuffer.isEmpty) return '';
+    return printBuffer.toString().substring(0, printBuffer.length - 1);
+  }
+
+  final state = State(onPrint: printBuffer.writeln);
   try {
     final ast = parse(input);
     final value = ast.run(state);
-    return value.toPrettyString();
+    return (getPrintBuffer(), value.toPrettyString());
   } on MyError catch (e) {
-    return e.toString();
+    return (getPrintBuffer(), e.toString());
   }
 }
 

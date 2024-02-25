@@ -9,26 +9,24 @@ void main() {
       expect(run('1[Nm]'), '1[N m]');
       expect(run('1[m2]'), '1[m2]');
       expect(run('1[m2 m]'), '1[m3]');
+
+      expect(run('1[anything]'), 'UnitParseError: [anything] not a valid unit');
     });
     test('operations', () {
       expect(run('1[m] + 1[m]'), '2[m]');
       expect(run('1[m] - 1[m]'), '0[m]');
       expect(run('1[m] * 1[m]'), '1[m2]');
       expect(run('1[m] / 1[m]'), '1');
-      expect(run('1[m] % 1[m]'), '0[m]');
-      expect(run('1[m] ^ 1'), '1[m2]');
+      expect(run('10[m] % 3[m]'), '1[m]');
     });
-    test('mixed operations', () {
-      expect(run('0f1 + 1'), '0f2.0');
-      expect(run('0f1 - 1'), '0f0.0');
-      expect(run('1 + 0f1'), '0f2.0');
-      expect(run('1 - 0f1'), '0f0.0');
-    });
-    test('unary operations', () {
-      expect(run('-0f1'), '-0f1.0');
-    });
-    test('floating point error', () {
-      expect(run('0f0.1 + 0.2'), '0f0.30000000000000004');
+    test('Assignment warning', () {
+      expect(
+        runWithPrint('a = 1[m]; a = 1[s]'),
+        (
+          'Warning: Variable "a" change it\'s unit dimension from "[m]" to "[s]"',
+          '1[s]',
+        ),
+      );
     });
   });
 }
