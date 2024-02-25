@@ -8,15 +8,24 @@ void main() {
       expect(run('"Hello World"'), '"Hello World"');
       expect(run("'Hello World'"), '"Hello World"');
     });
+    test('Equality', () {
+      expect(run('"Hello" == "Hello"'), 'true');
+      expect(run('"Hello" == "World"'), 'false');
+      expect(run('"Hello" == 1'), 'false');
+      expect(run('"Hello" == true'), 'false');
+    });
+    test('Type', () {
+      expect(run('type("Hello")'), '"string"');
+    });
     test('Addition', () {
       expect(run('"Hello" + " " + "World"'), '"Hello World"');
       expect(
         run('"Hello" + 1'),
-        'TypeError: Cannot apply operator "+" to types "string" and "number".',
+        'TypeError: Cannot apply operator "+" to types "string" and "number"',
       );
       expect(
         run('"Hello" + true'),
-        'TypeError: Cannot apply operator "+" to types "string" and "bool".',
+        'TypeError: Cannot apply operator "+" to types "string" and "bool"',
       );
     });
     test('Multiplication', () {
@@ -27,7 +36,7 @@ void main() {
       expect(run('"Hello" * 1.5'), 'NumberError: Number is not an integer');
       expect(
         run('"Hello" * true'),
-        'TypeError: Cannot apply operator "*" to types "string" and "bool".',
+        'TypeError: Cannot apply operator "*" to types "string" and "bool"',
       );
     });
   });

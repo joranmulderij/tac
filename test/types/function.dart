@@ -16,7 +16,7 @@ void main() {
       expect(run('f = x => x^2; f 2'), '4');
       expect(
         run('((x) => x^2)(2, 3)'),
-        'ArgumentError: Expected 1 arguments, got 2.',
+        'ArgumentError: Expected 1 arguments, got 2',
       );
     });
     test('Equality', () {

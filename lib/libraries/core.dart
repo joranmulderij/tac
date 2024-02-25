@@ -69,7 +69,7 @@ Value _loadLibrary(State state, Value arg) {
           'core' => ObjectValue(coreLibrary),
           'math' => ObjectValue(mathLibrary),
           'rand' => ObjectValue(randLibrary),
-          _ => throw UnimplementedError('Unknown "tac:" import: $path'),
+          _ => throw MyError.unknownLibrary(path),
         },
       _ => _loadLibraryFromPath(state, path),
     };
@@ -109,10 +109,10 @@ Value _exit = DartFunctionValue.from1Param(
       if (code.isInteger) {
         exit(code.toInt());
       } else {
-        throw MyError.unexpectedType('int', arg.type);
+        throw MyError.notAnInteger();
       }
     } else {
-      throw MyError.unexpectedType('int', arg.type);
+      throw MyError.unexpectedType('number', arg.type);
     }
   },
   'returnCode',

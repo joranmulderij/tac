@@ -5,6 +5,7 @@ import 'libraries/libraries.dart' as libraries;
 import 'logic.dart' as logic;
 import 'numbers/numbers.dart' as numbers;
 import 'scopes.dart' as scopes;
+import 'syntax.dart' as syntax;
 import 'types/types.dart' as types;
 import 'utils.dart';
 
@@ -14,6 +15,7 @@ void main() {
   logic.main();
   numbers.main();
   scopes.main();
+  syntax.main();
   types.main();
   test('Print number of runs', printRunCount);
 }

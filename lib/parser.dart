@@ -9,7 +9,7 @@ final _parser = _createParser();
 LinesExpr parse(String input) {
   final result = _parser.parse(input);
   return switch (result) {
-    Failure(:final message) => throw MyError(message),
+    Failure(:final message) => throw MyError.syntax(message),
     Success(value: final token) => token.value,
   };
 }
@@ -187,15 +187,6 @@ Parser<Token<LinesExpr>> _createParser() {
 
   builder.group()
     ..prefix(
-      Tokens.minus.token(),
-      (op, a) => Token(
-        UnaryExpr(UnaryOperator.neg, a.value),
-        op.buffer + a.buffer,
-        op.start,
-        a.stop,
-      ),
-    )
-    ..prefix(
       Tokens.exclaimark.token(),
       (op, a) => Token(
         UnaryExpr(UnaryOperator.not, a.value),
@@ -235,6 +226,15 @@ Parser<Token<LinesExpr>> _createParser() {
       Tokens.decrement.token(),
       (op, a) => Token(
         UnaryExpr(UnaryOperator.dec, a.value),
+        op.buffer + a.buffer,
+        op.start,
+        a.stop,
+      ),
+    )
+    ..prefix(
+      Tokens.minus.token(),
+      (op, a) => Token(
+        UnaryExpr(UnaryOperator.neg, a.value),
         op.buffer + a.buffer,
         op.start,
         a.stop,

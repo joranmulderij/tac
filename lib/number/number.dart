@@ -89,6 +89,8 @@ class RationalNumber extends Number {
 
   @override
   Number operator /(Number other) => switch (other) {
+        RationalNumber(_value: final value) when value == Rational.zero =>
+          throw MyError.divisionByZero(),
         RationalNumber(_value: final value) => RationalNumber(_value / value),
         FloatNumber(_value: final value) =>
           FloatNumber(_value.toDouble() / value),

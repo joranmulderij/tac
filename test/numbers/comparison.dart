@@ -22,7 +22,7 @@ void main() {
       expect(run('1 < 2'), 'true');
       expect(run('1 < 1'), 'false');
       expect(run('2 < 1'), 'false');
-      expect(run('0f1 < 1'), 'true');
+      expect(run('0f1 < 1'), 'false');
       expect(run('1 < 0f1'), 'false');
       expect(run('1 < 0f2'), 'true');
     });
@@ -47,7 +47,7 @@ void main() {
       expect(run('1 >= 1'), 'true');
       expect(run('1 >= 2'), 'false');
       expect(run('1 >= 0f1'), 'true');
-      expect(run('0f1 >= 1'), 'false');
+      expect(run('0f1 >= 1'), 'true');
       expect(run('1 >= 0f2'), 'false');
     });
   });

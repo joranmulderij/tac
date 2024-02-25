@@ -157,7 +157,11 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NumberValue && value == other.value && unitSet == other.unitSet;
+      other is NumberValue &&
+          (value == other.value && unitSet == other.unitSet ||
+              unitSet.dimensions == other.unitSet.dimensions &&
+                  value * Number.fromNum(unitSet.multiplier) ==
+                      other.value * Number.fromNum(other.unitSet.multiplier));
 
   @override
   int get hashCode => value.hashCode ^ unitSet.hashCode;

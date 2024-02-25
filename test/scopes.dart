@@ -10,6 +10,20 @@ void main() {
       expect(run('(a = 1) + a'), '2');
       expect(run('a = 1; a'), '1');
     });
+    test('Pre Increment', () {
+      expect(run('a = 1; ++a'), '2');
+      expect(run('a = 1; ++a; a'), '2');
+      expect(run('a = 1; --a'), '0');
+      expect(run('a = 1; --a; a'), '0');
+      expect(run('a = 1; ++a; ++a'), '3');
+    });
+    test('Post Increment', () {
+      expect(run('a = 1; a++'), '1');
+      expect(run('a = 1; a++; a'), '2');
+      expect(run('a = 1; a--'), '1');
+      expect(run('a = 1; a--; a'), '0');
+      expect(run('a = 1; a++; a++'), '2');
+    });
     test('Block', () {
       expect(run('{ a = 1 }; a'), 'unknown');
       expect(run('a = 1; { a = 2 }; a'), '2');

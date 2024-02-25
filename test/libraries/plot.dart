@@ -9,7 +9,7 @@ void main() {
       run('plot(x => x)');
       expect(
         run('plot(x => "Hello")'),
-        'TypeError: Expected number, got string.',
+        'TypeError: Expected number, got string',
       );
     });
   });

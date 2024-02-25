@@ -7,30 +7,30 @@ class MyError implements Exception {
   const MyError(this.message);
 
   MyError.unexpectedType(String expected, String got)
-      : message = 'TypeError: Expected $expected, got $got.';
+      : message = 'TypeError: Expected $expected, got $got';
 
   MyError.unitParseError(String unit)
-      : message = 'UnitParseError: [$unit] not a valid unit.';
+      : message = 'UnitParseError: [$unit] not a valid unit';
 
   MyError.unexpectedUnit(String expected, String got)
-      : message = 'UnitError: Expected [$expected], got [$got].';
+      : message = 'UnitError: Expected [$expected], got [$got]';
 
   MyError.argumentLengthError(int expected, int got)
-      : message = 'ArgumentError: Expected $expected arguments, got $got.';
+      : message = 'ArgumentError: Expected $expected arguments, got $got';
 
   MyError.propertyAccessError(Value value, String property)
       : message =
-            'PropertyAccessError: Cannot access property "$property" on value "$value".';
+            'PropertyAccessError: Cannot access property "$property" on value "$value"';
 
   MyError.binaryOperatorTypeError(
     String operator,
     String leftType,
     String rightType,
   ) : message =
-            'TypeError: Cannot apply operator "$operator" to types "$leftType" and "$rightType".';
+            'TypeError: Cannot apply operator "$operator" to types "$leftType" and "$rightType"';
 
   MyError.unaryOperatorTypeError(String operator, String type)
-      : message = 'TypeError: Cannot apply "$operator" to type "$type".';
+      : message = 'TypeError: Cannot apply "$operator" to type "$type"';
 
   MyError.notCallable(String type)
       : message = 'TypeError: Cannot call type objects of type "$type"';
@@ -42,6 +42,13 @@ class MyError implements Exception {
 
   MyError.expectedIdentifier(String token)
       : message = 'SyntaxError: Expected identifier, got "$token"';
+
+  MyError.syntax(String message) : message = 'SyntaxError: $message';
+
+  MyError.divisionByZero() : message = 'NumberError: Division by zero';
+
+  MyError.unknownLibrary(String library)
+      : message = 'Error: Unknown library "$library"';
 
   final String message;
 
@@ -93,7 +100,7 @@ class UnaryOperatorTypeError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'TypeError: Cannot apply "$operator" to type "$type".';
+    return 'TypeError: Cannot apply "$operator" to type "$type"';
   }
 }
 
@@ -111,7 +118,7 @@ class BinaryOperatorTypeError extends MyError {
   @override
   String toPrettyString() {
     return 'TypeError: Cannot apply operator "$operator" to '
-        'types "$leftType" and "$rightType".';
+        'types "$leftType" and "$rightType"';
   }
 }
 
@@ -124,7 +131,7 @@ class NotCallableError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'TypeError: Cannot call type "$type".';
+    return 'TypeError: Cannot call type "$type"';
   }
 }
 
@@ -138,7 +145,7 @@ class ArgumentNumberError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'TypeError: Expected $expected arguments, got $got.';
+    return 'TypeError: Expected $expected arguments, got $got';
   }
 }
 
@@ -152,7 +159,7 @@ class IncorrectTypeError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'TypeError: Expected $expected, got $got.';
+    return 'TypeError: Expected $expected, got $got';
   }
 }
 
@@ -165,7 +172,7 @@ class ExpectedIdentifierError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'SyntaxError: Expected identifier, got "$token".';
+    return 'SyntaxError: Expected identifier, got "$token"';
   }
 }
 
@@ -193,7 +200,7 @@ class PropertyAccessError extends MyError {
   @override
   String toPrettyString() {
     return 'PropertyAccessError: Cannot access property "$property" '
-        'on value "${value.toPrettyString()}".';
+        'on value "${value.toPrettyString()}"';
   }
 }
 
@@ -206,7 +213,7 @@ class PathNotFoundError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'PathNotFoundError: Path "$path" not found.';
+    return 'PathNotFoundError: Path "$path" not found';
   }
 }
 
@@ -219,7 +226,7 @@ class UnitParseError extends MyError {
 
   @override
   String toPrettyString() {
-    return 'UnitParseError: "$unit" not a valid unit.';
+    return 'UnitParseError: "$unit" not a valid unit';
   }
 }
 
@@ -234,6 +241,6 @@ class UnitsNotEqualError extends MyError {
   @override
   String toPrettyString() {
     return 'UnitsNotEqualError: Cannot compare values with different units '
-        '("$left" and "$right").';
+        '("$left" and "$right")';
   }
 }*/

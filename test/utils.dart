@@ -7,8 +7,8 @@ int _runCount = 0;
 String run(String input) {
   _runCount++;
   final state = State();
-  final ast = parse(input);
   try {
+    final ast = parse(input);
     final value = ast.run(state);
     return value.toPrettyString();
   } on MyError catch (e) {

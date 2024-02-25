@@ -239,22 +239,48 @@ class UnaryExpr extends Expr {
         return value().neg();
       case UnaryOperator.print:
         return _print(value());
-      case UnaryOperator.inc || UnaryOperator.dec:
+      case UnaryOperator.inc ||
+            UnaryOperator.dec ||
+            UnaryOperator.postInc ||
+            UnaryOperator.postDec:
         switch (expr) {
           case VariableExpr(:final name):
-            var value = state.get(name);
-            value = switch (op) {
-              UnaryOperator.inc => value.add(NumberValue.one),
-              UnaryOperator.dec => value.sub(NumberValue.one),
-              _ => value,
+            final value = state.get(name);
+            final newValue = switch (op) {
+              UnaryOperator.inc ||
+              UnaryOperator.postInc =>
+                value.add(NumberValue.one),
+              UnaryOperator.dec ||
+              UnaryOperator.postDec =>
+                value.sub(NumberValue.one),
+              _ => throw UnimplementedError(),
             };
-            state.set(name, value);
-            return value;
+            state.set(name, newValue);
+            final returnedValue = switch (op) {
+              UnaryOperator.postInc || UnaryOperator.postDec => value,
+              UnaryOperator.inc || UnaryOperator.dec => newValue,
+              _ => throw UnimplementedError(),
+            };
+            return returnedValue;
           default:
-            throw Exception('Cannot increment $expr');
+            throw MyError.expectedIdentifier(expr.runtimeType.toString());
         }
-      default:
-        throw UnimplementedError();
+      // case UnaryOperator.postInc || UnaryOperator.postDec:
+      //   switch (expr) {
+      //     case VariableExpr(:final name):
+      //       final value = state.get(name);
+      //       state.set(
+      //         name,
+      //         switch (op) {
+      //           UnaryOperator.postInc => value.add(NumberValue.one),
+      //           UnaryOperator.postDec => value.sub(NumberValue.one),
+      //           _ => value,
+      //         },
+      //       );
+      //       return value;
+      //     default:
+      //       throw MyError.expectedIdentifier(expr.runtimeType.toString());
+      //   }
     }
   }
 
