@@ -36,5 +36,26 @@ void main() {
       expect(run('type [1]'), '"list"');
       expect(run('type [1, 2]'), '"list"');
     });
+    test('Length', () {
+      expect(run('length []'), '0');
+      expect(run('length [1]'), '1');
+      expect(run('length [1, 2]'), '2');
+      expect(run('length [1, 2, 3]'), '3');
+    });
+    test('Spread', () {
+      expect(run('...[1, 2]'), '(1, 2)');
+      expect(run('a = [1, 2]; b = [3, 4]; [...a, ...b]'), '[1, 2, 3, 4]');
+      expect(run('a = [1, 2]; b = [3, 4]; [...a, 5, ...b]'), '[1, 2, 5, 3, 4]');
+      expect(run('...1'), 'TypeError: Expected list, got number');
+    });
+    test('Add', () {
+      expect(run('[1] + [2]'), '[1, 2]');
+      expect(run('[1, 2] + [3, 4]'), '[1, 2, 3, 4]');
+      expect(run('[1, 2] + [3]'), '[1, 2, 3]');
+      expect(run('[1] + [2, 3]'), '[1, 2, 3]');
+      expect(run('a = [1, 2]; b = [3, 4]; a + b'), '[1, 2, 3, 4]');
+      expect(run('[1, 2] + 3'), '[1, 2, 3]');
+      expect(run('[1, 2] + (3, 4)'), '[1, 2, 3, 4]');
+    });
   });
 }

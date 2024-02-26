@@ -12,6 +12,11 @@ void main() {
         '{ yes = false; no = true }',
       );
     });
+    test('Implicit Conditionals', () {
+      // TODO: Might remove this feature
+      expect(run('(1 < 2) "yes"'), '"yes"');
+      expect(run('(1 > 2) "yes"'), 'unknown');
+    });
     test('Loops', () {
       expect(run('counter = 0; 100 | {counter += 1}; counter'), '100');
     });

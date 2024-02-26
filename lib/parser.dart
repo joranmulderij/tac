@@ -250,6 +250,32 @@ Parser<Token<LinesExpr>> _createParser() {
       ),
     );
 
+  // Function call
+  builder.group()
+    ..postfix(
+      [Tokens.openParen, Tokens.closeParen]
+          .toSequenceParser()
+          .flatten()
+          .token(),
+      (left, op) => Token(
+        SequencialExpr(left.value, SequenceExpr([])),
+        left.buffer + op.buffer,
+        left.start,
+        op.stop,
+      ),
+    )
+    ..postfix(
+      <Parser>[Tokens.openParen, builder.loopback, Tokens.closeParen]
+          .toSequenceParser()
+          .token(),
+      (left, op) => Token(
+        SequencialExpr(left.value, (op.value[1] as Token<Expr>).value),
+        left.buffer + op.buffer,
+        left.start,
+        op.stop,
+      ),
+    );
+
   // ..prefix(
   //   Tokens.gt.token(),
   //   (op, a) => Token(
@@ -285,20 +311,21 @@ Parser<Token<LinesExpr>> _createParser() {
 
   // Function call
   // TODO: replace [char('@').not()] with a parser that never matches
-  builder.group()
-    ..right(char('@').not().flatten().token(), SequencialExpr.fromToken)
-    ..postfix(
-      [Tokens.openParen, Tokens.closeParen]
-          .toSequenceParser()
-          .flatten()
-          .token(),
-      (left, op) => Token(
-        SequencialExpr(left.value, SequenceExpr([])),
-        left.buffer + op.buffer,
-        left.start,
-        op.stop,
-      ),
-    );
+  builder
+      .group()
+      .right(char('@').not().flatten().token(), SequencialExpr.fromToken);
+  // ..postfix(
+  //   [Tokens.openParen, Tokens.closeParen]
+  //       .toSequenceParser()
+  //       .flatten()
+  //       .token(),
+  //   (left, op) => Token(
+  //     SequencialExpr(left.value, SequenceExpr([])),
+  //     left.buffer + op.buffer,
+  //     left.start,
+  //     op.stop,
+  //   ),
+  // );
 
   // Sequence
   builder.group().left(Tokens.comma, (left, op, right) {

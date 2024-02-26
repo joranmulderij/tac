@@ -18,10 +18,10 @@ class StringValue extends Value {
       };
 
   @override
-  String toString() => value;
+  String stringToString() => value;
 
   @override
-  String toPrettyString() => '"$value"';
+  String toString() => '"$value"';
 
   @override
   String get type => 'string';

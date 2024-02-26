@@ -249,7 +249,7 @@ class OperatorExpr extends Expr {
         }
         return ListValue.fromList(result);
       default:
-        return runPipe(left);
+        throw MyError.unexpectedType('number or list', left.type);
     }
   }
 
@@ -278,9 +278,14 @@ class OperatorExpr extends Expr {
       case NumberValue(value: final number, :final unitSet):
         final result = <Value>[];
         for (var i = 0; i < number.toInt(); i++) {
-          final condition = runPipe(NumberValue(Number.fromInt(i), unitSet));
-          if (condition case BoolValue(:final value) when value) {
-            result.add(NumberValue(Number.fromInt(i), unitSet));
+          final input = NumberValue(Number.fromInt(i), unitSet);
+          final condition = runPipe(input);
+          if (condition case BoolValue(:final value)) {
+            if (value) {
+              result.add(input);
+            }
+          } else {
+            throw MyError.unexpectedType('bool', condition.type);
           }
         }
         return ListValue.fromList(result);
@@ -296,7 +301,7 @@ class OperatorExpr extends Expr {
           }).toList(),
         );
       default:
-        return runPipe(left);
+        throw MyError.unexpectedType('number or list', left.type);
     }
   }
 }

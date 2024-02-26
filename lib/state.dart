@@ -32,7 +32,7 @@ class State {
           final newUnit = (value as ValueWithUnit).unitSet;
           if (newUnit != oldUnit && name != '_') {
             printWarning(
-              'Variable "$name" change it\'s unit dimension from "$oldUnit" to "$newUnit"',
+              'Variable "$name" change it\'s unit dimension from [$oldUnit] to [$newUnit]',
             );
           }
         }

@@ -22,7 +22,7 @@ class ObjectValue extends Value {
       return '{}';
     }
     // ignore: lines_longer_than_80_chars
-    return '{ ${values.entries.map((e) => '${e.key} = ${e.value.toPrettyString()}').join('; ')} }';
+    return '{ ${values.entries.map((e) => '${e.key} = ${e.value}').join('; ')} }';
   }
 
   @override

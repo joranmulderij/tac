@@ -18,12 +18,14 @@ void main() {
       expect(run('1[m] * 1[m]'), '1[m2]');
       expect(run('1[m] / 1[m]'), '1');
       expect(run('10[m] % 3[m]'), '1[m]');
+
+      expect(run('1[m] * 1[s-1]'), '1[m s-1]');
     });
     test('Assignment warning', () {
       expect(
         runWithPrint('a = 1[m]; a = 1[s]'),
         (
-          'Warning: Variable "a" change it\'s unit dimension from "[m]" to "[s]"',
+          'Warning: Variable "a" change it\'s unit dimension from [m] to [s]',
           '1[s]',
         ),
       );

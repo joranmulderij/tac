@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
+import 'package:tac_dart/number/number.dart';
 import 'package:tac_dart/parser.dart';
 import 'package:tac_dart/utils/errors.dart';
 
@@ -47,20 +46,21 @@ class UnitSet extends Equatable {
     );
   }
 
-  num get multiplier {
-    num multiplier = 1;
+  Number get multiplier {
+    var multiplier = Number.one;
     for (final MapEntry(key: unit, value: amount) in _units.entries) {
-      multiplier *= math.pow(unit.multiplier, amount);
+      multiplier *= unit.multiplier().pow(Number.fromInt(amount));
     }
     return multiplier;
   }
 
-  num get offset {
-    num offset = 0;
+  Number get offset {
+    var totalOffset = Number.zero;
     for (final MapEntry(key: unit, value: amount) in _units.entries) {
-      offset += (unit.offset ?? 0) * amount;
+      final offset = unit.offset?.call() ?? Number.zero;
+      totalOffset += offset * Number.fromInt(amount);
     }
-    return offset;
+    return totalOffset;
   }
 
   bool get isEmpty => _units.isEmpty;
@@ -73,7 +73,7 @@ class UnitSet extends Equatable {
       final amount = e.value;
       return '$unit${amount == 1 ? '' : '$amount'}';
     }).join(' ');
-    return '[$units]';
+    return units;
   }
 
   UnitSet operator +(UnitSet other) {
@@ -155,44 +155,50 @@ const resistance =
 
 enum Unit {
   // Mass
-  microGram('µg', ['ug'], 0.000001, mass),
-  gram('g', ['grams', 'gram'], 0.001, mass),
-  kiloGram('kg', ['kilograms', 'kilogram'], 1, mass),
+  microGram('µg', ['ug'], _millionth, mass),
+  gram('g', ['grams', 'gram'], _thousandth, mass),
+  kiloGram('kg', ['kilograms', 'kilogram'], _one, mass),
 
   // Length
-  microMeter('µm', ['um'], 0.000001, length),
-  milliMeter('mm', [], 0.001, length),
-  meter('m', ['meters', 'meter'], 1, length),
-  centiMeter('cm', [], 0.01, length),
-  deciMeter('dm', [], 0.1, length),
-  decaMeter('dam', [], 10, length),
-  hectoMeter('hm', [], 100, length),
-  kiloMeter('km', [], 1000, length),
+  microMeter('µm', ['um'], _millionth, length),
+  milliMeter('mm', [], _thousandth, length),
+  meter('m', ['meters', 'meter'], _one, length),
+  centiMeter('cm', [], _hundredth, length),
+  deciMeter('dm', [], _tenth, length),
+  decaMeter('dam', [], _ten, length),
+  hectoMeter('hm', [], _hundred, length),
+  kiloMeter('km', [], _thousand, length),
 
   // Time
-  second('s', [], 1, time),
-  minute('min', [], 60, time),
-  hour('h', [], 3600, time),
+  second('s', [], _one, time),
+  minute('min', [], _sixty, time),
+  hour('h', [], _thirtySixHundred, time),
 
   // Current
-  ampere('A', [], 1, current),
+  ampere('A', [], _one, current),
 
   // Voltage
-  milliVolt('mV', [], 0.001, voltage),
-  volt('V', [], 1, voltage),
+  milliVolt('mV', [], _thousandth, voltage),
+  volt('V', [], _one, voltage),
 
   // Temperature
-  kelvin('K', [], 1, temperature),
-  celsius('°C', ['oC', 'degC'], 1, temperature, offset: 273.15),
-  fahrenheit('°F', ['oF', 'degF'], 5 / 9, temperature, offset: 459.67),
+  kelvin('K', [], _one, temperature),
+  celsius('°C', ['oC', 'degC'], _one, temperature, offset: _celciusOffset),
+  fahrenheit(
+    '°F',
+    ['oF', 'degF'],
+    _fahrenheitToKelvin,
+    temperature,
+    offset: _fahrenheitOffset,
+  ),
 
   // Force
-  newton('N', [], 1, force),
-  kiloNewton('kN', [], 1000, force),
+  newton('N', [], _one, force),
+  kiloNewton('kN', [], _thousand, force),
 
   // Energy
-  joule('J', [], 1, energy),
-  kiloJoule('kJ', [], 1000, energy);
+  joule('J', [], _one, energy),
+  kiloJoule('kJ', [], _thousand, energy);
 
   const Unit(
     this.name,
@@ -204,12 +210,28 @@ enum Unit {
 
   final String name;
   final List<String> otherNames;
-  final num multiplier;
-  final num? offset;
+  final Number Function() multiplier;
+  final Number Function()? offset;
   final DimensionSignature dim;
 
   @override
   String toString() => name;
+
+  static Number _millionth() => Number.fromDouble(0.000001);
+  static Number _thousandth() => Number.fromDouble(0.001);
+  static Number _hundredth() => Number.fromDouble(0.01);
+  static Number _tenth() => Number.fromDouble(0.1);
+  static Number _one() => Number.one;
+  static Number _ten() => Number.fromInt(10);
+  static Number _hundred() => Number.fromInt(100);
+  static Number _thousand() => Number.fromInt(1000);
+
+  static Number _sixty() => Number.fromInt(60);
+  static Number _thirtySixHundred() => Number.fromInt(3600);
+
+  static Number _fahrenheitToKelvin() => Number.fromDouble(5 / 9);
+  static Number _fahrenheitOffset() => Number.fromDouble(459.67);
+  static Number _celciusOffset() => Number.fromDouble(273.15);
 }
 
 Parser<Map<Unit, int>> unitParser() => Unit.values

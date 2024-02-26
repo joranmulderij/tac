@@ -10,6 +10,7 @@ void main(List<String> args) async {
     // ignore: avoid_print
     print('HotReloader listening.');
     await runRepl(reloader);
+    // ignore: avoid_print
     print('HotReloader stopped.');
     await reloader.stop();
     // ignore: avoid_catching_errors
@@ -29,10 +30,11 @@ Future<void> runRepl([HotReloader? reloader]) async {
     if (input == 'exit') {
       break;
     }
-    if (input.isEmpty && lastInput != null) {
-      input = lastInput;
-    }
-    if (RegExp(r'^(\+|-|\*|\/|%|\^|==|!=|>|<|\|\|)').hasMatch(input)) {
+    // if (input.isEmpty && lastInput != null) {
+    //   input = lastInput;
+    // }
+    if (RegExp(r'^(\+|-|\*|\/|%|\^|==|!=|>|<|\|\|)').hasMatch(input) &&
+        lastInput != null) {
       input = '_$input';
     }
     lastInput = input;
@@ -43,7 +45,7 @@ Future<void> runRepl([HotReloader? reloader]) async {
         continue;
       }
       stdout.writeln(
-        ConsoleUtils.green('  = ${value.toPrettyString()} '),
+        ConsoleUtils.green('  = $value '),
       );
     } on MyError catch (e) {
       stdout.writeln(ConsoleUtils.red(e.toString()));

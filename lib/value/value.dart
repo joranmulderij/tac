@@ -49,7 +49,7 @@ sealed class Value {
   String get type;
   @override
   String toString();
-  String toPrettyString() => toString();
+  String stringToString() => toString();
 }
 
 abstract class ValueWithUnit {

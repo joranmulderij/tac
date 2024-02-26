@@ -28,7 +28,7 @@ class SequenceValue extends Value {
 
   @override
   String toString() {
-    return '(${values.map((e) => e.toPrettyString()).join(', ')})';
+    return '(${values.map((e) => e.toString()).join(', ')})';
   }
 
   @override

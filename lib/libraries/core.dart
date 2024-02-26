@@ -14,6 +14,8 @@ final coreLibrary = {
   'false': const BoolValue(false),
   'print': _print,
   'type': _type,
+  'length': _length,
+  'string': _string,
   'import': _import,
   'load': _load,
   'return': _return,
@@ -25,8 +27,7 @@ final coreLibrary = {
 
 final _print = DartFunctionValue.from1Param(
   (state, arg) {
-    // ignore: avoid_print
-    print(arg);
+    state.onPrint(arg.toString());
     return arg;
   },
   'value',
@@ -39,6 +40,27 @@ final _type = DartFunctionValue.from1Param(
 
 final _return = DartFunctionValue.from1Param(
   (state, arg) => throw ReturnException(arg),
+  'value',
+);
+
+final _length = DartFunctionValue.from1Param(
+  (state, arg) {
+    return switch (arg) {
+      StringValue(:final value) => NumberValue.fromNum(value.length),
+      ListValue(:final values) => NumberValue.fromNum(values.length),
+      // Turns out you cannot check the length of a sequence like this because
+      // the values get unpacked.
+      // SequenceValue(:final values) => NumberValue.fromNum(values.length),
+      _ => throw MyError.unexpectedType('list or string', arg.type),
+    };
+  },
+  'value',
+);
+
+final _string = DartFunctionValue.from1Param(
+  (state, arg) {
+    return StringValue(arg.stringToString());
+  },
   'value',
 );
 

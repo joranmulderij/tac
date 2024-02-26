@@ -5,9 +5,17 @@ part of 'value.dart';
 class NumberValue extends Value implements ValueWithUnit {
   const NumberValue(this.value, this.unitSet);
 
+  NumberValue.fromNum(num value, [UnitSet? unitSet])
+      : value = Number.fromNum(value),
+        unitSet = unitSet ?? UnitSet.empty;
+
   final Number value;
   @override
   final UnitSet unitSet;
+
+  static final zero = NumberValue(Number.zero, UnitSet.empty);
+
+  static final one = NumberValue(Number.one, UnitSet.empty);
 
   @override
   Value add(Value other) => switch (other) {
@@ -117,39 +125,30 @@ class NumberValue extends Value implements ValueWithUnit {
 
   @override
   String toString() {
-    if (value.isInteger) {
-      return value.toString();
-    } else {
-      return value.toNum().toString();
+    var unitString = unitSet.toString();
+    if (unitString.isNotEmpty) {
+      unitString = '[$unitString]';
     }
-  }
-
-  @override
-  String toPrettyString() {
     if (value is FloatNumber) {
       final num = value.toNum().toDouble();
       if (num.isNegative) {
-        return '-0f${-num}$unitSet';
+        return '-0f${-num}$unitString';
       } else {
-        return '0f$num$unitSet';
+        return '0f$num$unitString';
       }
     } else if (value.isInteger) {
-      return '$value$unitSet';
+      return '$value$unitString';
     } else {
       final valueString = value.toString();
       if (valueString.length > 20) {
-        return '${value.toNum()}$unitSet';
+        return '${value.toNum()}$unitString';
       }
-      return '$valueString$unitSet ≈ ${value.toNum()}$unitSet';
+      return '$valueString$unitString ≈ ${value.toNum()}$unitString';
     }
   }
 
   @override
   Value neg() => NumberValue(-value, unitSet);
-
-  static final zero = NumberValue(Number.zero, UnitSet.empty);
-
-  static final one = NumberValue(Number.one, UnitSet.empty);
 
   @override
   String get type => 'number';
@@ -160,8 +159,8 @@ class NumberValue extends Value implements ValueWithUnit {
       other is NumberValue &&
           (value == other.value && unitSet == other.unitSet ||
               unitSet.dimensions == other.unitSet.dimensions &&
-                  value * Number.fromNum(unitSet.multiplier) ==
-                      other.value * Number.fromNum(other.unitSet.multiplier));
+                  value * unitSet.multiplier ==
+                      other.value * other.unitSet.multiplier);
 
   @override
   int get hashCode => value.hashCode ^ unitSet.hashCode;
@@ -179,8 +178,6 @@ Number _unitsConvertMultiplier(UnitSet left, UnitSet right, Number value) {
   if (left.isEmpty || right.isEmpty) {
     return value;
   }
-  final normalized =
-      (value + Number.fromNum(right.offset)) * Number.fromNum(right.multiplier);
-  return normalized / Number.fromNum(left.multiplier) -
-      Number.fromNum(left.offset);
+  final normalized = (value + right.offset) * right.multiplier;
+  return normalized / left.multiplier - left.offset;
 }

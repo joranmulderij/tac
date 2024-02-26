@@ -20,7 +20,7 @@ String run(String input) {
   try {
     final ast = parse(input);
     final value = ast.run(state);
-    return (getPrintBuffer(), value.toPrettyString());
+    return (getPrintBuffer(), value.toString());
   } on MyError catch (e) {
     return (getPrintBuffer(), e.toString());
   }

@@ -41,6 +41,17 @@ class ListValue extends Value {
   }
 
   @override
+  Value add(Value other) {
+    return switch (other) {
+      ListValue(values: final otherValues) =>
+        ListValue.fromList([...values, ...otherValues]),
+      SequenceValue(values: final otherValues) =>
+        ListValue.fromList([...values, ...otherValues]),
+      _ => ListValue.fromList([...values, other])
+    };
+  }
+
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ListValue &&

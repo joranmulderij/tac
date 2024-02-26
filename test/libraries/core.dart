@@ -21,6 +21,10 @@ void main() {
       expect(run('import "test/libraries/test1.tac"; (a, b, c)'), '(1, 2, 3)');
       expect(run('import "test/libraries/test2.tac"; (a, b, c)'), '(1, 2, 3)');
       expect(
+        run('import "test/libraries/test3.tac"'),
+        'TypeError: Expected object, got string',
+      );
+      expect(
         run('import "test/libraries/anything.tac"; (a, b, c)'),
         'FileError: File not found at "test/libraries/anything.tac"',
       );
@@ -47,6 +51,22 @@ void main() {
       expect(run('eval "a = 1"; a'), '1');
       expect(run('eval "return 1; 2"'), '1');
       expect(run('eval 1'), 'TypeError: Expected string, got number');
+    });
+    test('string', () {
+      expect(run('string 1'), '"1"');
+      expect(run('string "1"'), '"1"');
+      expect(run('string true'), '"true"');
+      expect(run('string false'), '"false"');
+      expect(run('string unknown'), '"unknown"');
+      expect(run('string {{}}'), '"{}"');
+    });
+    test('print', () {
+      expect(runWithPrint('print 1'), ('1', '1'));
+    });
+    test('length', () {
+      expect(run('length [1, 2, 3]'), '3');
+      expect(run('length "123"'), '3');
+      expect(run('length 1'), 'TypeError: Expected list or string, got number');
     });
   });
 }
