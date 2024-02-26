@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:tac/number/number.dart';
+import 'package:tac/state.dart';
 import 'package:tac/units.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
@@ -35,3 +36,26 @@ final randLibrary = {
     ),
   ),
 };
+
+class MyRandomObject extends DartObject {
+  const MyRandomObject(this.random, this.seed);
+
+  final Random random;
+  final int? seed;
+
+  @override
+  Value call(State state, List<Value> args) {
+    throw MyError.notCallable(type);
+  }
+
+  @override
+  Value? getProperty(String name) => null;
+
+  @override
+  String get type => 'random';
+
+  @override
+  String toString() {
+    return 'random';
+  }
+}

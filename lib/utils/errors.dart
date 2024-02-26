@@ -10,7 +10,7 @@ class MyError implements Exception {
       : message = 'UnitParseError: [$unit] not a valid unit';
 
   MyError.unexpectedUnit(String expected, String got)
-      : message = 'UnitError: Expected $expected, got $got';
+      : message = 'UnitError: Expected [$expected], got [$got]';
 
   MyError.argumentLengthError(int expected, int got)
       : message = 'ArgumentError: Expected $expected arguments, got $got';

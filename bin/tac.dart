@@ -18,6 +18,7 @@ void main(List<String> args) async {
 }
 
 Future<void> runRepl([HotReloader? reloader]) async {
+  stdout.writeln('Tac REPL');
   final state = State();
   String? lastInput;
   while (true) {

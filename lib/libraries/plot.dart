@@ -21,9 +21,10 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
   (state, arg) {
     final console = Console();
     final boxGlyphSet = BoxGlyphSet.rounded();
-    final plotWidth = console.windowWidth * 2 - 2;
     final width = console.windowWidth - 1;
-    final height = (console.windowWidth ~/ 4) * 5;
+    final plotWidth = width * 2;
+    final height = console.windowHeight - 3;
+    final plotHeight = height * 5;
     const min = -10.0;
     const max = 10.0;
     final step = (max - min) / plotWidth;
@@ -43,10 +44,10 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
     final minValue = values.reduce((a, b) => a < b ? a : b);
     final rangeValue = maxValue - minValue;
     final normalizedValues = values
-        .map((e) => (maxValue - e) / rangeValue * (height - 1))
+        .map((e) => (maxValue - e) / rangeValue * (plotHeight - 1))
         .map((e) => e.floor());
     final matrix = List<List<bool>>.generate(
-      height,
+      plotHeight,
       (_) => List.generate(plotWidth, (_) => false),
     );
     int? lastY;
@@ -74,7 +75,7 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
       }
       lastY = y;
     }
-    for (var y = 0; y < height; y += 5) {
+    for (var y = 0; y < plotHeight; y += 5) {
       final buffer = StringBuffer();
       for (var x = 0; x < plotWidth; x += 2) {
         final braille1 = matrix[y][x] ? 1 : 0;

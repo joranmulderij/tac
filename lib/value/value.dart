@@ -8,6 +8,7 @@ import 'package:tac/utils/errors.dart';
 
 part 'bool_value.dart';
 part 'dart_function_value.dart';
+part 'dart_object.dart';
 part 'fun_value.dart';
 part 'list_value.dart';
 part 'number_value.dart';
