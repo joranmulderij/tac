@@ -27,7 +27,7 @@ final coreLibrary = {
 
 final _print = DartFunctionValue.from1Param(
   (state, arg) {
-    state.onPrint(arg.toString());
+    state.print(arg.toString());
     return arg;
   },
   'value',

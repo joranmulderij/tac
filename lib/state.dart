@@ -1,14 +1,15 @@
+import 'dart:io';
+
 import 'package:tac_dart/libraries/core.dart';
 import 'package:tac_dart/libraries/math.dart';
 import 'package:tac_dart/libraries/plot.dart';
+import 'package:tac_dart/utils/console.dart';
 import 'package:tac_dart/value/value.dart';
 
 class State {
-  State({required this.onPrint})
-      : scopes = [Scope(ScopeProtectionLevel.blocked)];
+  State() : scopes = [Scope(ScopeProtectionLevel.blocked)];
 
   final List<Scope> scopes;
-  final void Function(String) onPrint;
 
   Value get(String name) {
     for (final scope in scopes.reversed) {
@@ -67,11 +68,11 @@ class State {
   }
 
   void print(String message) {
-    onPrint(message);
+    stdout.writeln(message);
   }
 
   void printWarning(String message) {
-    onPrint('Warning: $message');
+    stdout.writeln(ConsoleUtils.orange('Warning: $message'));
   }
 }
 

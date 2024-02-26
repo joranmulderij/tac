@@ -16,7 +16,7 @@ String run(String input) {
     return printBuffer.toString().substring(0, printBuffer.length - 1);
   }
 
-  final state = State(onPrint: printBuffer.writeln);
+  final state = _MockState(onPrint: printBuffer.writeln);
   try {
     final ast = parse(input);
     final value = ast.run(state);
@@ -29,4 +29,20 @@ String run(String input) {
 void printRunCount() {
   // ignore: avoid_print
   print('Number of runs: $_runCount');
+}
+
+class _MockState extends State {
+  _MockState({required this.onPrint});
+
+  void Function(String) onPrint;
+
+  @override
+  void print(String message) {
+    onPrint(message);
+  }
+
+  @override
+  void printWarning(String message) {
+    onPrint('Warning: $message');
+  }
 }

@@ -7,11 +7,9 @@ import 'package:tac_dart/utils/console.dart';
 void main(List<String> args) async {
   try {
     final reloader = await HotReloader.create();
-    // ignore: avoid_print
-    print('HotReloader listening.');
+    stdout.writeln('HotReloader listening.');
     await runRepl(reloader);
-    // ignore: avoid_print
-    print('HotReloader stopped.');
+    stdout.writeln('HotReloader stopped.');
     await reloader.stop();
     // ignore: avoid_catching_errors
   } on StateError {
@@ -20,7 +18,7 @@ void main(List<String> args) async {
 }
 
 Future<void> runRepl([HotReloader? reloader]) async {
-  final state = State(onPrint: stdout.writeln);
+  final state = State();
   String? lastInput;
   while (true) {
     stdout.write('> ');
