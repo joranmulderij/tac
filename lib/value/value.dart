@@ -18,7 +18,6 @@ part 'string_value.dart';
 part 'unknown_value.dart';
 part 'vector_value.dart';
 
-@immutable
 sealed class Value {
   const Value();
   Value add(Value other) =>
@@ -45,6 +44,8 @@ sealed class Value {
   Value not() => throw MyError.unaryOperatorTypeError('!', type);
   Value neg() => throw MyError.unaryOperatorTypeError('-', type);
   Value getProperty(String name) =>
+      throw MyError.propertyAccessError(this, name);
+  Value setProperty(String name, Value value) =>
       throw MyError.propertyAccessError(this, name);
 
   String get type;

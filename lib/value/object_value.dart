@@ -1,16 +1,26 @@
 part of 'value.dart';
 
 class ObjectValue extends Value {
-  const ObjectValue(this.values);
-  final Map<String, Value> values;
+  ObjectValue(this.values);
+  Map<String, Value> values;
 
   @override
   Value getProperty(String name) {
     if (values.containsKey(name)) {
-      return values[name]!;
+      final value = values[name]!;
+      return switch (value) {
+        FunValue(:final args, :final body) => MethodValue(this, args, body),
+        _ => value
+      };
     } else {
       return super.getProperty(name);
     }
+  }
+
+  @override
+  Value setProperty(String name, Value value) {
+    values[name] = value;
+    return value;
   }
 
   @override

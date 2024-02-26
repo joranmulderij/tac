@@ -38,3 +38,18 @@ class FunValue extends Value {
         body,
       ]);
 }
+
+class MethodValue extends FunValue {
+  const MethodValue(this.object, super.args, super.body);
+
+  final ObjectValue object;
+
+  @override
+  Value call(State state, List<Value> args) {
+    state.pushScope();
+    state.loadLibrary(object.values);
+    final value = super.call(state, args);
+    object.values = state.popScope().variables;
+    return value;
+  }
+}

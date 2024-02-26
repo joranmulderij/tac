@@ -123,6 +123,29 @@ class OperatorExpr extends Expr {
     };
   }
 
+  List<String>? getPropertyChain(Expr expr) {
+    if (expr
+        case OperatorExpr(
+          left: VariableExpr(:final name),
+          op: Operator.getProperty,
+          right: VariableExpr(name: final property)
+        )) {
+      return [name, property];
+    }
+    if (expr
+        case OperatorExpr(
+          left: VariableExpr(:final name),
+          op: Operator.getProperty,
+          right: OperatorExpr(),
+        )) {
+      final properties = getPropertyChain(expr.left);
+      if (properties != null) {
+        return [name, ...properties];
+      }
+    }
+    return null;
+  }
+
   Value _assign(State state, Expr left, Expr right) {
     if (left case SequencialExpr(left: final nameExpr, right: final argExpr)) {
       if (nameExpr case (VariableExpr(:final name))) {
@@ -150,6 +173,18 @@ class OperatorExpr extends Expr {
       } else {
         throw MyError.expectedIdentifier(nameExpr.runtimeType.toString());
       }
+    }
+
+    final properties = getPropertyChain(left);
+    if (properties != null) {
+      var value = state.get(properties.first);
+      for (var i = 1; i < properties.length - 2; i++) {
+        value = value.getProperty(properties[i]);
+      }
+      final property = properties.last;
+      final rightValue = right.run(state);
+      value.setProperty(property, rightValue);
+      return rightValue;
     }
 
     final rightValue = right.run(state);
