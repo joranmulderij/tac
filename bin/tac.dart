@@ -1,8 +1,8 @@
 import 'dart:io' show stdin, stdout;
 
 import 'package:hotreloader/hotreloader.dart';
-import 'package:tac_dart/tac_dart.dart';
-import 'package:tac_dart/utils/console.dart';
+import 'package:tac/tac.dart';
+import 'package:tac/utils/console.dart';
 
 void main(List<String> args) async {
   try {

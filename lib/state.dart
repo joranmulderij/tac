@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:tac_dart/libraries/core.dart';
-import 'package:tac_dart/libraries/math.dart';
-import 'package:tac_dart/libraries/plot.dart';
-import 'package:tac_dart/utils/console.dart';
-import 'package:tac_dart/value/value.dart';
+import 'package:tac/libraries/core.dart';
+import 'package:tac/libraries/math.dart';
+import 'package:tac/libraries/plot.dart';
+import 'package:tac/utils/console.dart';
+import 'package:tac/value/value.dart';
 
 class State {
   State() : scopes = [Scope(ScopeProtectionLevel.blocked)];

@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 import 'package:rational/rational.dart';
-import 'package:tac_dart/utils/errors.dart';
-import 'package:tac_dart/value/value.dart';
+import 'package:tac/utils/errors.dart';
+import 'package:tac/value/value.dart';
 
 @immutable
 sealed class Number {

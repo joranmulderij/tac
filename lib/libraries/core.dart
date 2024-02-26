@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:tac_dart/ast/ast.dart';
-import 'package:tac_dart/libraries/http.dart';
-import 'package:tac_dart/libraries/math.dart';
-import 'package:tac_dart/libraries/rand.dart';
-import 'package:tac_dart/parser.dart';
-import 'package:tac_dart/state.dart';
-import 'package:tac_dart/utils/errors.dart';
-import 'package:tac_dart/value/value.dart';
+import 'package:tac/ast/ast.dart';
+import 'package:tac/libraries/http.dart';
+import 'package:tac/libraries/math.dart';
+import 'package:tac/libraries/rand.dart';
+import 'package:tac/parser.dart';
+import 'package:tac/state.dart';
+import 'package:tac/utils/errors.dart';
+import 'package:tac/value/value.dart';
 
 final coreLibrary = {
   'true': const BoolValue(true),

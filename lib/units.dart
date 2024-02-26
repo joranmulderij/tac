@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:tac_dart/number/number.dart';
-import 'package:tac_dart/parser.dart';
-import 'package:tac_dart/utils/errors.dart';
+import 'package:tac/number/number.dart';
+import 'package:tac/parser.dart';
+import 'package:tac/utils/errors.dart';
 
 @immutable
 class UnitSet extends Equatable {

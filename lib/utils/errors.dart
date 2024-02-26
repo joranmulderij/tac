@@ -1,4 +1,4 @@
-import 'package:tac_dart/value/value.dart';
+import 'package:tac/value/value.dart';
 
 class MyError implements Exception {
   const MyError(this.message);

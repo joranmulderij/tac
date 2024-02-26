@@ -1,6 +1,6 @@
 import 'package:sync_http/sync_http.dart';
-import 'package:tac_dart/utils/errors.dart';
-import 'package:tac_dart/value/value.dart';
+import 'package:tac/utils/errors.dart';
+import 'package:tac/value/value.dart';
 
 // TODO: This package seems very wack.
 final httpLibrary = {

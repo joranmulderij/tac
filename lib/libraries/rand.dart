@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:tac_dart/number/number.dart';
-import 'package:tac_dart/units.dart';
-import 'package:tac_dart/utils/errors.dart';
-import 'package:tac_dart/value/value.dart';
+import 'package:tac/number/number.dart';
+import 'package:tac/units.dart';
+import 'package:tac/utils/errors.dart';
+import 'package:tac/value/value.dart';
 
 final _randomObject = Random();
 

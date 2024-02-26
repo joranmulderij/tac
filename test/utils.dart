@@ -1,6 +1,6 @@
-import 'package:tac_dart/parser.dart';
-import 'package:tac_dart/state.dart';
-import 'package:tac_dart/utils/errors.dart';
+import 'package:tac/parser.dart';
+import 'package:tac/state.dart';
+import 'package:tac/utils/errors.dart';
 
 int _runCount = 0;
 
