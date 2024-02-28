@@ -1,12 +1,11 @@
 name: tac
-description: A sample command-line application.
+description: An advanced command-line calculator.
 version: 1.0.0
 publish_to: 'none'
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/joranmulderij/tac
 environment:
   sdk: ^3.1.0
 
-# Add regular dependencies here.
 dependencies:
   ansicolor: ^2.0.1
   collection: ^1.18.0
@@ -24,3 +23,5 @@ dev_dependencies:
   lints: ^2.0.0
   test: ^1.21.0
   very_good_analysis: ^5.1.0
+
+dependency_overrides: {}
