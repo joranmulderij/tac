@@ -515,26 +515,38 @@ class LinesExpr extends Expr {
   }
 }
 
-class BlockExpr extends Expr {
+abstract class AnyBlockExpr extends Expr {
+  Value runWithProps(State state, Map<String, Value> props);
+}
+
+class BlockExpr extends AnyBlockExpr {
   BlockExpr(this.expr);
   final LinesExpr expr;
 
   @override
-  Value run(State state) {
+  Value run(State state) => runWithProps(state, {});
+
+  @override
+  Value runWithProps(State state, Map<String, Value> props) {
     state.pushScope();
+    state.setAll(props);
     final result = expr.run(state);
     state.popScope();
     return result;
   }
 }
 
-class ProtectedBlockExpr extends Expr {
+class ProtectedBlockExpr extends AnyBlockExpr {
   ProtectedBlockExpr(this.lines);
   final LinesExpr lines;
 
   @override
-  Value run(State state) {
+  Value run(State state) => runWithProps(state, {});
+
+  @override
+  Value runWithProps(State state, Map<String, Value> props) {
     state.pushProtectedScope();
+    state.setAll(props);
     try {
       for (final expr in lines.exprs) {
         state.set('_', expr.run(state));
@@ -549,14 +561,19 @@ class ProtectedBlockExpr extends Expr {
   }
 }
 
-class BlockedBlockExpr extends Expr {
+class BlockedBlockExpr extends AnyBlockExpr {
   BlockedBlockExpr(this.lines);
   final LinesExpr lines;
 
   @override
-  Value run(State state) {
+  Value run(State state) => runWithProps(state, {});
+
+  @override
+  Value runWithProps(State state, Map<String, Value> props) {
+    // This is to make sure that all the loaded libraries are not returned.
     state.pushBlockedScope();
     state.pushScope();
+    state.setAll(props);
     try {
       for (final expr in lines.exprs) {
         state.set('_', expr.run(state));

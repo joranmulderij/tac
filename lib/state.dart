@@ -19,9 +19,10 @@ class State {
         break;
       }
     }
-    const unknown = UnknownValue();
-    scopes.last.variables[name] = unknown;
-    return unknown;
+    // const unknown = UnknownValue();
+    // scopes.last.variables[name] = unknown;
+    // return unknown;
+    return const UnknownValue();
   }
 
   void set(String name, Value value) {
@@ -47,7 +48,7 @@ class State {
     scopes.last.variables[name] = value;
   }
 
-  void loadLibrary(Map<String, Value> library) {
+  void setAll(Map<String, Value> library) {
     scopes.last.variables.addAll(library);
   }
 

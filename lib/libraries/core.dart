@@ -73,7 +73,7 @@ final DartFunctionValue _import = DartFunctionValue.from1Param(
     final library = _loadLibrary(state, arg);
     switch (library) {
       case ObjectValue(:final values):
-        state.loadLibrary(values);
+        state.setAll(values);
         return library;
       case Value():
         throw MyError.unexpectedType('object', library.type);

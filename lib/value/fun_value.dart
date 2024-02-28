@@ -10,11 +10,18 @@ class FunValue extends Value {
     if (this.args.length != args.length) {
       throw MyError.argumentLengthError(this.args.length, args.length);
     }
+    final argMap = <String, Value>{
+      for (var i = 0; i < this.args.length; i++) this.args[i]: args[i],
+    };
     state.pushScope();
     for (var i = 0; i < this.args.length; i++) {
       state.set(this.args[i], args[i]);
     }
-    final value = body.run(state);
+    final body = this.body;
+    final value = switch (body) {
+      AnyBlockExpr() => body.runWithProps(state, argMap),
+      _ => body.run(state),
+    };
     state.popScope();
     return value;
   }
@@ -47,7 +54,7 @@ class MethodValue extends FunValue {
   @override
   Value call(State state, List<Value> args) {
     state.pushScope();
-    state.loadLibrary(object.values);
+    state.setAll(object.values);
     final value = super.call(state, args);
     object.values = state.popScope().variables;
     return value;

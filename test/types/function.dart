@@ -26,10 +26,17 @@ void main() {
       expect(run('((x) => x^2) == (x, y => x^2)'), 'false');
     });
     test('Types', () {
-      // Closures get created with function creation, so functions never equal.
       expect(run('type((x) => x^2)'), '"fun(x)"');
       expect(run('type((x, y) => x + y)'), '"fun(x, y)"');
       expect(run('type(() => 1)'), '"fun()"');
+    });
+    test('Blocks', () {
+      expect(run('f(a) = {{}}; f 2'), '{ a = 2 }');
+      expect(run('f(a) = { a }; f 2'), '2');
+      expect(
+        run('a = 1; f(b) = {{{ c = a; }}}; f 2'),
+        '{ b = 2; c = unknown }',
+      );
     });
   });
 }
