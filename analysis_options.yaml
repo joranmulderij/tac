@@ -23,6 +23,7 @@ linter:
     one_member_abstracts: false
     flutter_style_todos: false
     lines_longer_than_80_chars: false
+    avoid_equals_and_hash_code_on_mutable_classes: false
 
 # analyzer:
 #   exclude:
