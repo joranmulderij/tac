@@ -68,12 +68,12 @@ Parser<Token<LinesExpr>> _createParser() {
           (token.value[2] as UnitSet?) ?? UnitSet.empty,
         ),
       );
-  final variable = (letter() | char('_'))
-      .plus()
-      .flatten()
-      .token()
-      .trimNoNewline()
-      .mapToken((token) => VariableExpr(token.value));
+  final variable =
+      ((letter() | char('_')) & (letter() | char('_') | digit()).plus())
+          .flatten()
+          .token()
+          .trimNoNewline()
+          .mapToken((token) => VariableExpr(token.value));
   final string1 = (char('"') & any().starLazy(char('"')).flatten() & char('"'))
       .token()
       .trimNoNewline()
