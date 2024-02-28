@@ -473,6 +473,7 @@ class SequencialExpr extends Expr {
       case DartFunctionValue():
       case FunValue():
       case ListValue():
+      case VectorValue():
       case SequenceValue():
         final rightValue = right.run(state);
         final argValues = switch (rightValue) {
@@ -618,20 +619,6 @@ class SequenceExpr extends Expr {
   }
 }
 
-class VectorExpr extends Expr {
-  VectorExpr(this.exprs);
-  final List<Expr> exprs;
-
-  @override
-  Value run(State state) {
-    final values = <Value>[];
-    for (final expr in exprs) {
-      values.add(expr.run(state));
-    }
-    return VectorValue(values);
-  }
-}
-
 class ListExpr extends Expr {
   ListExpr(this.expr);
 
@@ -642,5 +629,18 @@ class ListExpr extends Expr {
     final value = expr?.run(state);
     if (value == null) return const ListValue.empty();
     return ListValue(value);
+  }
+}
+
+class VectorExpr extends Expr {
+  VectorExpr(this.expr);
+
+  final Expr? expr;
+
+  @override
+  Value run(State state) {
+    final value = expr?.run(state);
+    if (value == null) return const VectorValue.empty();
+    return VectorValue(value);
   }
 }

@@ -70,7 +70,10 @@ void main() {
     test('length', () {
       expect(run('length [1, 2, 3]'), '3');
       expect(run('length "123"'), '3');
-      expect(run('length 1'), 'TypeError: Expected list or string, got number');
+      expect(
+        run('length 1'),
+        'TypeError: Expected list, string, or vector, got number',
+      );
     });
   });
 }

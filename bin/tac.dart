@@ -32,8 +32,8 @@ Future<void> runRepl([HotReloader? reloader]) async {
     // if (input.isEmpty && lastInput != null) {
     //   input = lastInput;
     // }
-    if (RegExp(r'^(\+|-|\*|\/|%|\^|==|!=|>|<|\|\|)').hasMatch(input) &&
-        lastInput != null) {
+    final regex = RegExp(r'^(\+|-|\*|\/|%|\^|==|!=|\|\|)');
+    if (regex.hasMatch(input) && lastInput != null) {
       input = '_$input';
     }
     lastInput = input;

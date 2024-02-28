@@ -92,6 +92,8 @@ Parser<Token<LinesExpr>> _createParser() {
   final emptyList = (Tokens.openBracket & Tokens.closeBracket)
       .map((value) => ListExpr(null))
       .token();
+  final emptyVector =
+      (Tokens.lt & Tokens.gt).map((value) => VectorExpr(null)).token();
 
   Parser<Token<T>> block<T extends Expr>(
     Parser<String> start,
@@ -123,6 +125,7 @@ Parser<Token<LinesExpr>> _createParser() {
   builder.primitive(string2);
   builder.primitive(emptySequence);
   builder.primitive(emptyList);
+  builder.primitive(emptyVector);
   builder.primitive(
     block<BlockedBlockExpr>(
       Tokens.openTripleBrace,
@@ -160,24 +163,18 @@ Parser<Token<LinesExpr>> _createParser() {
     },
   );
 
-  // TODO: Find syntax for vectors
-  // Currently, they are not correctly parsed because of the < and > tokens
-  // builder.group().wrapper(
-  //   Tokens.lt.token(),
-  //   (Tokens.comma.optional() & Tokens.gt).token(),
-  //   (left, middle, right) {
-  //     final exprs = switch (middle.value) {
-  //       SequenceExpr(:final exprs) => exprs,
-  //       final expr => [expr],
-  //     };
-  //     return Token(
-  //       VectorExpr(exprs),
-  //       left.buffer + middle.buffer + right.buffer,
-  //       left.start,
-  //       right.stop,
-  //     );
-  //   },
-  // );
+  builder.group().wrapper(
+    Tokens.lt.token(),
+    (Tokens.comma.optional() & Tokens.gt).token(),
+    (left, middle, right) {
+      return Token(
+        VectorExpr(middle.value),
+        left.buffer + middle.buffer + right.buffer,
+        left.start,
+        right.stop,
+      );
+    },
+  );
 
   // Property access
   builder.group().right(

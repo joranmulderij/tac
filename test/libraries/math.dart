@@ -46,5 +46,9 @@ void main() {
       expect(run('atan("1")'), 'TypeError: Expected number, got string');
       expect(run('atan(1, 2)'), 'ArgumentError: Expected 1 arguments, got 2');
     });
+    test('Constants', () {
+      expect(run('pi'), '0f3.141592653589793');
+      expect(run('e'), '0f2.718281828459045');
+    });
   });
 }

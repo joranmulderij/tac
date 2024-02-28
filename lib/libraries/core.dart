@@ -52,10 +52,11 @@ final _length = DartFunctionValue.from1Param(
     return switch (arg) {
       StringValue(:final value) => NumberValue.fromNum(value.length),
       ListValue(:final values) => NumberValue.fromNum(values.length),
+      VectorValue(:final values) => NumberValue.fromNum(values.length),
       // Turns out you cannot check the length of a sequence like this because
       // the values get unpacked.
       // SequenceValue(:final values) => NumberValue.fromNum(values.length),
-      _ => throw MyError.unexpectedType('list or string', arg.type),
+      _ => throw MyError.unexpectedType('list, string, or vector', arg.type),
     };
   },
   'value',
