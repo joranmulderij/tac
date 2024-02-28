@@ -25,12 +25,16 @@ final coreLibrary = {
 
 // Core functions
 
-final _print = DartFunctionValue.from1Param(
-  (state, arg) {
-    state.print(arg.toString());
-    return arg;
+final _print = DartFunctionValue(
+  (state, args) {
+    state.print(args.map((arg) => arg.stringToString()).join(' '));
+
+    if (args.length == 1) {
+      return args.first;
+    }
+    return SequenceValue(args);
   },
-  'value',
+  ['...values'],
 );
 
 final _type = DartFunctionValue.from1Param(

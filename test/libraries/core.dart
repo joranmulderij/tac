@@ -62,6 +62,10 @@ void main() {
     });
     test('print', () {
       expect(runWithPrint('print 1'), ('1', '1'));
+      expect(runWithPrint('print "a"'), ('a', '"a"'));
+      expect(runWithPrint('print(1, 2)'), ('1 2', '(1, 2)'));
+      expect(runWithPrint('print("a", "b")'), ('a b', '("a", "b")'));
+      expect(runWithPrint('print()'), ('', '()'));
     });
     test('length', () {
       expect(run('length [1, 2, 3]'), '3');
