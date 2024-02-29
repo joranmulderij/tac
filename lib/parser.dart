@@ -69,7 +69,7 @@ Parser<Token<LinesExpr>> _createParser() {
         ),
       );
   final variable =
-      ((letter() | char('_')) & (letter() | char('_') | digit()).plus())
+      ((letter() | char('_')) & (letter() | char('_') | digit()).star())
           .flatten()
           .token()
           .trimNoNewline()
