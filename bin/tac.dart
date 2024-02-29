@@ -3,22 +3,14 @@ import 'dart:io' show stdin, stdout;
 import 'package:hotreloader/hotreloader.dart';
 import 'package:tac/tac.dart';
 import 'package:tac/utils/console.dart';
+import 'package:tac/utils/constants.dart';
 
-void main(List<String> args) async {
-  try {
-    final reloader = await HotReloader.create();
-    stdout.writeln('HotReloader listening.');
-    await runRepl(reloader);
-    stdout.writeln('HotReloader stopped.');
-    await reloader.stop();
-    // ignore: avoid_catching_errors
-  } on StateError {
-    await runRepl();
-  }
+void main(List<String> args) {
+  runRepl();
 }
 
 Future<void> runRepl([HotReloader? reloader]) async {
-  stdout.writeln('Tac REPL');
+  stdout.writeln('TAC (TAC Advanced Calculator) $appVersion');
   final state = State();
   String? lastInput;
   while (true) {

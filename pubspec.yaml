@@ -1,6 +1,6 @@
 name: tac
 description: An advanced command-line calculator.
-version: 1.0.0
+version: 0.0.1
 publish_to: 'none'
 repository: https://github.com/joranmulderij/tac
 environment:

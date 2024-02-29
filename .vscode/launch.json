@@ -10,6 +10,13 @@
             "type": "dart",
             "program": "bin/tac.dart",
             "console": "terminal"
+        },
+        {
+            "name": "hotreload",
+            "request": "launch",
+            "type": "dart",
+            "program": "bin/hotreload.dart",
+            "console": "terminal"
         }
     ]
 }
