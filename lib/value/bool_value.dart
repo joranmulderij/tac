@@ -6,7 +6,7 @@ class BoolValue extends Value {
   final bool value;
 
   @override
-  String toString() => value.toString();
+  String toConsoleString(bool color) => Console.orange(value.toString(), color);
 
   @override
   Value not() => BoolValue(!value);

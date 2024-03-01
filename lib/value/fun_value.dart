@@ -27,7 +27,8 @@ class FunValue extends Value {
   }
 
   @override
-  String toString() => 'fun(${args.join(', ')})';
+  String toConsoleString(bool color) =>
+      'fun(${args.map((e) => Console.blue(e, color)).join(', ')})';
 
   @override
   String get type => 'fun(${args.join(', ')})';

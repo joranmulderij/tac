@@ -20,7 +20,7 @@ String run(String input) {
   try {
     final ast = parse(input);
     final value = ast.run(state);
-    return (getPrintBuffer(), value.toString());
+    return (getPrintBuffer(), value.toConsoleString(false));
   } on MyError catch (e) {
     return (getPrintBuffer(), e.toString());
   }
@@ -32,7 +32,7 @@ void printRunCount() {
 }
 
 class _MockState extends State {
-  _MockState({required this.onPrint});
+  _MockState({required this.onPrint}) : super(color: false);
 
   void Function(String) onPrint;
 

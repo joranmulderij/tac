@@ -27,7 +27,7 @@ final coreLibrary = {
 
 final _print = DartFunctionValue(
   (state, args) {
-    state.print(args.map((arg) => arg.stringToString()).join(' '));
+    state.print(args.map((arg) => arg.toString()).join(' '));
 
     if (args.length == 1) {
       return args.first;
@@ -64,7 +64,7 @@ final _length = DartFunctionValue.from1Param(
 
 final _string = DartFunctionValue.from1Param(
   (state, arg) {
-    return StringValue(arg.stringToString());
+    return StringValue(arg.toString());
   },
   'value',
 );

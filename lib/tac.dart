@@ -6,23 +6,26 @@ import 'package:tac/utils/console.dart';
 import 'package:tac/utils/errors.dart';
 
 class TAC {
+  TAC({required this.color}) : state = State(color: color);
+
   static const appVersion = '0.0.1';
 
-  final state = State();
+  final bool color;
+  final State state;
 
   void run(String input) {
     try {
       final ast = parse(input);
       final value = ast.run(state);
       stdout.writeln(
-        ConsoleUtils.green('  = $value '),
+        '  ${Console.green('=', color)} ${value.toConsoleString(color)} ',
       );
     } on MyError catch (e) {
-      stdout.writeln(ConsoleUtils.red(e.toString()));
+      stdout.writeln(Console.red(e.toString(), color));
     } catch (e, st) {
-      stdout.writeln(ConsoleUtils.red('Unexpected error:'));
-      stdout.writeln(ConsoleUtils.red(e.toString()));
-      stdout.writeln(ConsoleUtils.red(st.toString()));
+      stdout.writeln(Console.red('Unexpected error:', color));
+      stdout.writeln(Console.red(e.toString(), color));
+      stdout.writeln(Console.red(st.toString(), color));
     }
   }
 }

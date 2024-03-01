@@ -18,10 +18,10 @@ class StringValue extends Value {
       };
 
   @override
-  String stringToString() => value;
+  String toString() => value;
 
   @override
-  String toString() => '"$value"';
+  String toConsoleString(bool color) => Console.blue('"$value"', color);
 
   @override
   String get type => 'string';

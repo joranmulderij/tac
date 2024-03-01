@@ -7,7 +7,7 @@ class UnknownValue extends Value {
   String get type => 'unknown';
 
   @override
-  String toString() => 'unknown';
+  String toConsoleString(bool color) => Console.orange('unknown', color);
 
   @override
   bool operator ==(Object other) =>

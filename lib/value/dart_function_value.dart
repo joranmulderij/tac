@@ -40,7 +40,9 @@ class DartFunctionValue extends Value {
   String get type => 'fun(${args.join(', ')})';
 
   @override
-  String toString() => 'fun(${args.join(', ')})';
+  String toConsoleString(bool color) => 'fun(${args.map(
+        (e) => Console.blue(e, color),
+      ).join(', ')})';
 
   @override
   bool operator ==(Object other) =>

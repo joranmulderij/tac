@@ -7,9 +7,10 @@ import 'package:tac/utils/console.dart';
 import 'package:tac/value/value.dart';
 
 class State {
-  State() : scopes = [Scope(ScopeProtectionLevel.blocked)];
+  State({required this.color}) : scopes = [Scope(ScopeProtectionLevel.blocked)];
 
   final List<Scope> scopes;
+  final bool color;
 
   Value get(String name) {
     for (final scope in scopes.reversed) {
@@ -73,7 +74,7 @@ class State {
   }
 
   void printWarning(String message) {
-    stdout.writeln(ConsoleUtils.orange('Warning: $message'));
+    stdout.writeln(Console.orange('Warning: $message', color));
   }
 }
 

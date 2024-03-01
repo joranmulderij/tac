@@ -27,9 +27,8 @@ class SequenceValue extends Value {
   }
 
   @override
-  String toString() {
-    return '(${values.map((e) => e.toString()).join(', ')})';
-  }
+  String toConsoleString(bool color) =>
+      '(${values.map((e) => e.toConsoleString(color)).join(', ')})';
 
   @override
   bool operator ==(Object other) =>

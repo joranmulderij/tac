@@ -17,9 +17,8 @@ class ListValue extends Value {
   String get type => 'list';
 
   @override
-  String toString() {
-    return '[${values.map((e) => e.toString()).join(', ')}]';
-  }
+  String toConsoleString(bool color) =>
+      '[${values.map((e) => e.toConsoleString(color)).join(', ')}]';
 
   @override
   Value call(State state, List<Value> args) {

@@ -92,7 +92,8 @@ class VectorValue extends Value {
   }
 
   @override
-  String toString() => '<${values.join(', ')}>';
+  String toConsoleString(bool color) =>
+      '<${values.map((e) => e.toConsoleString(color)).join(', ')}>';
 
   @override
   String get type => 'vector';

@@ -124,26 +124,32 @@ class NumberValue extends Value implements ValueWithUnit {
   }
 
   @override
-  String toString() {
+  String toConsoleString(bool color) {
     var unitString = unitSet.toString();
     if (unitString.isNotEmpty) {
-      unitString = '[$unitString]';
+      unitString = '[${Console.purple(unitString, color)}]';
     }
     if (value is FloatNumber) {
       final num = value.toNum().toDouble();
+      final prefix = Console.gray('0f', color);
       if (num.isNegative) {
-        return '-0f${-num}$unitString';
+        final numString = Console.green((-num).toString(), color);
+        final negSign = Console.green('-', color);
+        return '$negSign$prefix$numString$unitString';
       } else {
-        return '0f$num$unitString';
+        final numString = Console.green(num.toString(), color);
+        return '$prefix$numString$unitString';
       }
     } else if (value.isInteger) {
-      return '$value$unitString';
+      final valueString = Console.green(value.toString(), color);
+      return '$valueString$unitString';
     } else {
-      final valueString = value.toString();
+      final valueString = Console.green(value.toString(), color);
+      final valueNumString = Console.green(value.toNum().toString(), color);
       if (valueString.length > 20) {
-        return '${value.toNum()}$unitString';
+        return '$valueNumString$unitString';
       }
-      return '$valueString$unitString ≈ ${value.toNum()}$unitString';
+      return '$valueString$unitString ≈ $valueNumString$unitString';
     }
   }
 

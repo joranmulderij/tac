@@ -4,11 +4,11 @@ import 'package:tac/ast/ast.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/state.dart';
 import 'package:tac/units.dart';
+import 'package:tac/utils/console.dart';
 import 'package:tac/utils/errors.dart';
 
 part 'bool_value.dart';
 part 'dart_function_value.dart';
-part 'dart_object.dart';
 part 'fun_value.dart';
 part 'list_value.dart';
 part 'number_value.dart';
@@ -50,8 +50,9 @@ sealed class Value {
 
   String get type;
   @override
-  String toString();
-  String stringToString() => toString();
+  String toString() => toConsoleString(false);
+  // ignore: avoid_positional_boolean_parameters
+  String toConsoleString(bool color);
 }
 
 abstract class ValueWithUnit {

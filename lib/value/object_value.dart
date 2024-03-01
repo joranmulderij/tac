@@ -27,12 +27,15 @@ class ObjectValue extends Value {
   String get type => 'object';
 
   @override
-  String toString() {
+  String toConsoleString(bool color) {
     if (values.isEmpty) {
       return '{}';
     }
     // ignore: lines_longer_than_80_chars
-    return '{ ${values.entries.map((e) => '${e.key} = ${e.value}').join('; ')} }';
+    return '{ ${values.entries.map(
+          (e) =>
+              '${Console.blue(e.key, color)} = ${e.value.toConsoleString(color)}',
+        ).join('; ')} }';
   }
 
   @override
