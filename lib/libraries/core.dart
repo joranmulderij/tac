@@ -26,7 +26,7 @@ final coreLibrary = {
 // Core functions
 
 final _print = DartFunctionValue(
-  (state, args) {
+  (state, args) async {
     state.print(args.map((arg) => arg.toString()).join(' '));
 
     if (args.length == 1) {
@@ -38,7 +38,7 @@ final _print = DartFunctionValue(
 );
 
 final _type = DartFunctionValue.from1Param(
-  (state, arg) => StringValue(arg.type),
+  (state, arg) async => StringValue(arg.type),
   'value',
 );
 
@@ -48,7 +48,7 @@ final _return = DartFunctionValue.from1Param(
 );
 
 final _length = DartFunctionValue.from1Param(
-  (state, arg) {
+  (state, arg) async {
     return switch (arg) {
       StringValue(:final value) => NumberValue.fromNum(value.length),
       ListValue(:final values) => NumberValue.fromNum(values.length),
@@ -63,20 +63,20 @@ final _length = DartFunctionValue.from1Param(
 );
 
 final _string = DartFunctionValue.from1Param(
-  (state, arg) {
+  (state, arg) async {
     return StringValue(arg.toString());
   },
   'value',
 );
 
 final DartFunctionValue _import = DartFunctionValue.from1Param(
-  (state, arg) {
-    final library = _loadLibrary(state, arg);
+  (state, arg) async {
+    final library = await _loadLibrary(state, arg);
     switch (library) {
       case ObjectValue(:final values):
         state.setAll(values);
         return library;
-      case Value():
+      default:
         throw MyError.unexpectedType('object', library.type);
     }
   },
@@ -90,7 +90,7 @@ final _load = DartFunctionValue.from1Param(
 
 // Utils
 
-Value _loadLibrary(State state, Value arg) {
+Future<Value> _loadLibrary(State state, Value arg) async {
   if (arg case StringValue(value: final path)) {
     final library = switch (null) {
       _ when path.startsWith('tac:') => switch (path.substring(4)) {
@@ -100,7 +100,7 @@ Value _loadLibrary(State state, Value arg) {
           'http' => ObjectValue(httpLibrary),
           _ => throw MyError.unknownLibrary(path),
         },
-      _ => _loadLibraryFromPath(state, path),
+      _ => await _loadLibraryFromPath(state, path),
     };
     return library;
   } else {
@@ -108,13 +108,13 @@ Value _loadLibrary(State state, Value arg) {
   }
 }
 
-Value _loadLibraryFromPath(State state, String path) {
+Future<Value> _loadLibraryFromPath(State state, String path) async {
   try {
     final file = File(path);
     final contents = file.readAsStringSync();
     final lines = parse(contents);
     final block = BlockedBlockExpr(lines);
-    return block.run(state);
+    return await block.run(state);
   } on PathNotFoundException {
     throw MyError.fileNotFound(path);
   }

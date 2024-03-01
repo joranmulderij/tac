@@ -64,8 +64,10 @@ class VectorValue extends Value {
   Value getProperty(String name) {
     return switch (name) {
       'length' => NumberValue(Number.fromInt(values.length), UnitSet.empty),
-      'cross' =>
-        DartFunctionValue.from1Param((state, arg) => _cross(arg), 'other'),
+      'cross' => DartFunctionValue.from1Param(
+          (state, arg) async => _cross(arg),
+          'other',
+        ),
       _ => throw MyError.propertyAccessError(this, name),
     };
   }
@@ -99,7 +101,7 @@ class VectorValue extends Value {
   String get type => 'vector';
 
   @override
-  Value call(State state, List<Value> args) {
+  Future<Value> call(State state, List<Value> args) async {
     if (args.length != 1) {
       throw MyError.argumentLengthError(1, args.length);
     }

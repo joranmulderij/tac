@@ -40,7 +40,8 @@ sealed class Value {
       throw MyError.binaryOperatorTypeError('>=', type, other.type);
   Value pow(Value other) =>
       throw MyError.binaryOperatorTypeError('^', type, other.type);
-  Value call(State state, List<Value> args) => throw MyError.notCallable(type);
+  Future<Value> call(State state, List<Value> args) =>
+      throw MyError.notCallable(type);
   Value not() => throw MyError.unaryOperatorTypeError('!', type);
   Value neg() => throw MyError.unaryOperatorTypeError('-', type);
   Value getProperty(String name) =>

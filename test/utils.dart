@@ -1,14 +1,13 @@
-import 'package:tac/parser.dart';
 import 'package:tac/state.dart';
 import 'package:tac/utils/errors.dart';
 
 int _runCount = 0;
 
-String run(String input) {
-  return runWithPrint(input).$2;
+Future<String> run(String input) async {
+  return (await runWithPrint(input)).$2;
 }
 
-(String, String) runWithPrint(String input) {
+Future<(String, String)> runWithPrint(String input) async {
   _runCount++;
   final printBuffer = StringBuffer();
   String getPrintBuffer() {
@@ -16,10 +15,9 @@ String run(String input) {
     return printBuffer.toString().substring(0, printBuffer.length - 1);
   }
 
-  final state = _MockState(onPrint: printBuffer.writeln);
+  final state = State(onPrint: printBuffer.writeln, color: false);
   try {
-    final ast = parse(input);
-    final value = ast.run(state);
+    final value = await state.run(input);
     return (getPrintBuffer(), value.toConsoleString(false));
   } on MyError catch (e) {
     return (getPrintBuffer(), e.toString());
@@ -29,20 +27,4 @@ String run(String input) {
 void printRunCount() {
   // ignore: avoid_print
   print('Number of runs: $_runCount');
-}
-
-class _MockState extends State {
-  _MockState({required this.onPrint}) : super(color: false);
-
-  void Function(String) onPrint;
-
-  @override
-  void print(String message) {
-    onPrint(message);
-  }
-
-  @override
-  void printWarning(String message) {
-    onPrint('Warning: $message');
-  }
 }

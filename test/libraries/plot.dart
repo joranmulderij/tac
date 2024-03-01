@@ -4,11 +4,11 @@ import '../utils.dart';
 
 void main() {
   group('plot', () {
-    test('Basic', () {
-      run('plot sin');
-      run('plot(x => x)');
+    test('Basic', () async {
+      await run('plot sin');
+      await run('plot(x => x)');
       expect(
-        run('plot(x => "Hello")'),
+        await run('plot(x => "Hello")'),
         'TypeError: Expected number, got string',
       );
     });

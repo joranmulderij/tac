@@ -1,16 +1,23 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:tac/libraries/core.dart';
 import 'package:tac/libraries/math.dart';
 import 'package:tac/libraries/plot.dart';
+import 'package:tac/parser.dart';
 import 'package:tac/utils/console.dart';
 import 'package:tac/value/value.dart';
 
 class State {
-  State({required this.color}) : scopes = [Scope(ScopeProtectionLevel.blocked)];
+  State({
+    required this.color,
+    required this.onPrint,
+    this.printAst = false,
+  });
 
-  final List<Scope> scopes;
+  final List<Scope> scopes = [Scope(ScopeProtectionLevel.blocked)];
+  final void Function(String) onPrint;
   final bool color;
+  final bool printAst;
 
   Value get(String name) {
     for (final scope in scopes.reversed) {
@@ -70,11 +77,20 @@ class State {
   }
 
   void print(String message) {
-    stdout.writeln(message);
+    onPrint(message);
   }
 
   void printWarning(String message) {
-    stdout.writeln(Console.orange('Warning: $message', color));
+    onPrint(Console.orange('Warning: $message', color));
+  }
+
+  Future<Value> run(String input) async {
+    final ast = parse(input);
+    if (printAst) {
+      print(const JsonEncoder.withIndent('  ').convert(ast.toJson()));
+    }
+    final value = await ast.run(this);
+    return value;
   }
 }
 

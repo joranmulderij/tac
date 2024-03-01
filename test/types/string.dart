@@ -4,38 +4,41 @@ import '../utils.dart';
 
 void main() {
   group('Strings', () {
-    test('Literals', () {
-      expect(run('"Hello World"'), '"Hello World"');
-      expect(run("'Hello World'"), '"Hello World"');
+    test('Literals', () async {
+      expect(await run('"Hello World"'), '"Hello World"');
+      expect(await run("'Hello World'"), '"Hello World"');
     });
-    test('Equality', () {
-      expect(run('"Hello" == "Hello"'), 'true');
-      expect(run('"Hello" == "World"'), 'false');
-      expect(run('"Hello" == 1'), 'false');
-      expect(run('"Hello" == true'), 'false');
+    test('Equality', () async {
+      expect(await run('"Hello" == "Hello"'), 'true');
+      expect(await run('"Hello" == "World"'), 'false');
+      expect(await run('"Hello" == 1'), 'false');
+      expect(await run('"Hello" == true'), 'false');
     });
-    test('Type', () {
-      expect(run('type("Hello")'), '"string"');
+    test('Type', () async {
+      expect(await run('type("Hello")'), '"string"');
     });
-    test('Addition', () {
-      expect(run('"Hello" + " " + "World"'), '"Hello World"');
+    test('Addition', () async {
+      expect(await run('"Hello" + " " + "World"'), '"Hello World"');
       expect(
-        run('"Hello" + 1'),
+        await run('"Hello" + 1'),
         'TypeError: Cannot apply operator "+" to types "string" and "number"',
       );
       expect(
-        run('"Hello" + true'),
+        await run('"Hello" + true'),
         'TypeError: Cannot apply operator "+" to types "string" and "bool"',
       );
     });
-    test('Multiplication', () {
-      expect(run('"Hello" * 3'), '"HelloHelloHello"');
-      expect(run('"Hello" * 0'), '""');
-      expect(run('"Hello" * -1'), '""');
-      expect(run('"Hello" * 1'), '"Hello"');
-      expect(run('"Hello" * 1.5'), 'NumberError: Number is not an integer');
+    test('Multiplication', () async {
+      expect(await run('"Hello" * 3'), '"HelloHelloHello"');
+      expect(await run('"Hello" * 0'), '""');
+      expect(await run('"Hello" * -1'), '""');
+      expect(await run('"Hello" * 1'), '"Hello"');
       expect(
-        run('"Hello" * true'),
+        await run('"Hello" * 1.5'),
+        'NumberError: Number is not an integer',
+      );
+      expect(
+        await run('"Hello" * true'),
         'TypeError: Cannot apply operator "*" to types "string" and "bool"',
       );
     });

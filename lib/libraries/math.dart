@@ -31,7 +31,7 @@ final mathLibrary = {
 
 DartFunctionValue _mathFunction(num Function(num) f) {
   return DartFunctionValue.from1Param(
-    (state, arg) {
+    (state, arg) async {
       if (arg case NumberValue(:final value)) {
         var result = f(value.toNum());
         if (result.roundToDouble() == result) {

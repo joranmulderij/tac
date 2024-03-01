@@ -6,7 +6,9 @@ import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
 sealed class Expr {
-  Value run(State state);
+  Future<Value> run(State state);
+
+  dynamic toJson();
 }
 
 class NumberExpr extends Expr {
@@ -16,7 +18,14 @@ class NumberExpr extends Expr {
   final UnitSet unitSet;
 
   @override
-  Value run(State state) => NumberValue(rational, unitSet);
+  Future<Value> run(State state) async => NumberValue(rational, unitSet);
+
+  @override
+  dynamic toJson() => {
+        'type': 'number',
+        'rational': rational.toString(),
+        'unitSet': unitSet.toString(),
+      };
 }
 
 class VariableExpr extends Expr {
@@ -24,10 +33,16 @@ class VariableExpr extends Expr {
   final String name;
 
   @override
-  Value run(State state) => state.get(name);
+  Future<Value> run(State state) async => state.get(name);
 
   @override
   String toString() => 'VariableExpr($name)';
+
+  @override
+  dynamic toJson() => {
+        'type': 'variable',
+        'name': name,
+      };
 }
 
 class StringExpr extends Expr {
@@ -35,9 +50,13 @@ class StringExpr extends Expr {
   final String string;
 
   @override
-  Value run(State state) {
-    return StringValue(string);
-  }
+  Future<Value> run(State state) async => StringValue(string);
+
+  @override
+  dynamic toJson() => {
+        'type': 'string',
+        'string': string,
+      };
 }
 
 class OperatorExpr extends Expr {
@@ -47,6 +66,14 @@ class OperatorExpr extends Expr {
   final Expr right;
   final int start;
   final int stop;
+
+  @override
+  dynamic toJson() => {
+        'type': 'operator',
+        'op': op.toString(),
+        'left': left.toJson(),
+        'right': right.toJson(),
+      };
 
   static Token<OperatorExpr> Function(Token<Expr>, String, Token<Expr>)
       fromToken(
@@ -68,42 +95,42 @@ class OperatorExpr extends Expr {
   }
 
   @override
-  Value run(State state) {
-    Value leftValue() => left.run(state);
-    Value rightValue() => right.run(state);
+  Future<Value> run(State state) async {
+    Future<Value> leftValue() => left.run(state);
+    Future<Value> rightValue() => right.run(state);
 
     return switch (op) {
-      Operator.add => leftValue().add(rightValue()),
-      Operator.sub => leftValue().sub(rightValue()),
-      Operator.mul => leftValue().mul(rightValue()),
-      Operator.div => leftValue().div(rightValue()),
-      Operator.mod => leftValue().mod(rightValue()),
-      Operator.pow => leftValue().pow(rightValue()),
-      Operator.lt => leftValue().lt(rightValue()),
-      Operator.gt => leftValue().gt(rightValue()),
-      Operator.eq => leftValue() == rightValue()
+      Operator.add => (await leftValue()).add(await rightValue()),
+      Operator.sub => (await leftValue()).sub(await rightValue()),
+      Operator.mul => (await leftValue()).mul(await rightValue()),
+      Operator.div => (await leftValue()).div(await rightValue()),
+      Operator.mod => (await leftValue()).mod(await rightValue()),
+      Operator.pow => (await leftValue()).pow(await rightValue()),
+      Operator.lt => (await leftValue()).lt(await rightValue()),
+      Operator.gt => (await leftValue()).gt(await rightValue()),
+      Operator.eq => (await leftValue()) == (await rightValue())
           ? const BoolValue(true)
           : const BoolValue(false),
-      Operator.ne => leftValue() != rightValue()
+      Operator.ne => (await leftValue()) != (await rightValue())
           ? const BoolValue(true)
           : const BoolValue(false),
-      Operator.lte => leftValue().lte(rightValue()),
-      Operator.gte => leftValue().gte(rightValue()),
-      Operator.assign => _assign(state, left, right),
+      Operator.lte => (await leftValue()).lte(await rightValue()),
+      Operator.gte => (await leftValue()).gte(await rightValue()),
+      Operator.assign => await _assign(state, left, right),
       Operator.plusAssign =>
-        _assignValue(state, left, leftValue().add(rightValue())),
+        _assignValue(state, left, (await leftValue()).add(await rightValue())),
       Operator.minusAssign =>
-        _assignValue(state, left, leftValue().sub(rightValue())),
+        _assignValue(state, left, (await leftValue()).sub(await rightValue())),
       Operator.mulAssign =>
-        _assignValue(state, left, leftValue().mul(rightValue())),
+        _assignValue(state, left, (await leftValue()).mul(await rightValue())),
       Operator.divAssign =>
-        _assignValue(state, left, leftValue().div(rightValue())),
-      Operator.pipe => _pipe(state, leftValue(), right),
-      Operator.pipeWhere => _pipeWhere(state, leftValue(), right),
+        _assignValue(state, left, (await leftValue()).div(await rightValue())),
+      Operator.pipe => await _pipe(state, await leftValue(), right),
+      Operator.pipeWhere => await _pipeWhere(state, await leftValue(), right),
       Operator.funCreate => _funCreate(left, right),
-      Operator.and => _locicalAnd(leftValue(), rightValue()),
-      Operator.or => _locicalOr(leftValue(), rightValue()),
-      Operator.getProperty => _getProperty(leftValue(), right),
+      Operator.and => _locicalAnd(await leftValue(), await rightValue()),
+      Operator.or => _locicalOr(await leftValue(), await rightValue()),
+      Operator.getProperty => _getProperty(await leftValue(), right),
     };
   }
 
@@ -146,7 +173,7 @@ class OperatorExpr extends Expr {
     return null;
   }
 
-  Value _assign(State state, Expr left, Expr right) {
+  Future<Value> _assign(State state, Expr left, Expr right) async {
     if (left case SequencialExpr(left: final nameExpr, right: final argExpr)) {
       if (nameExpr case (VariableExpr(:final name))) {
         if (argExpr case VariableExpr(name: final arg)) {
@@ -182,12 +209,12 @@ class OperatorExpr extends Expr {
         value = value.getProperty(properties[i]);
       }
       final property = properties.last;
-      final rightValue = right.run(state);
+      final rightValue = await right.run(state);
       value.setProperty(property, rightValue);
       return rightValue;
     }
 
-    final rightValue = right.run(state);
+    final rightValue = await right.run(state);
     return _assignValue(state, left, rightValue);
   }
 
@@ -230,18 +257,42 @@ class OperatorExpr extends Expr {
   }
 
   Value _getProperty(Value left, Expr right) {
+    // var tempRight = right;
+    // final operations = <Expr>[];
+    // String? foundName;
+    // while (true) {
+    //   if (tempRight case VariableExpr(:final name)) {
+    //     foundName = name;
+    //     break;
+    //   } else if (tempRight
+    //       case SequencialExpr(left: VariableExpr(:final name))) {
+    //     operations.add(tempRight.right);
+    //     foundName = name;
+    //     break;
+    //   } else if (tempRight
+    //       case SequencialExpr(left: SequencialExpr(), right: SequenceExpr())) {
+    //     operations.add(tempRight.right);
+    //     tempRight = tempRight.left;
+    //   } else {
+    //     throw 'temp';
+    //   }
+    // }
     final property = switch (right) {
       VariableExpr(:final name) => name,
       _ => throw MyError.expectedIdentifier(left.runtimeType.toString()),
     };
     return left.getProperty(property);
+    // var result = left.getProperty(foundName);
+    // for (final operation in operations.reversed) {
+    //   result = await SequencialExpr(result, operation).run(state);
+    // }
   }
 
-  Value _pipe(State state, Value left, Expr right) {
-    Value runPipe(Value value) {
+  Future<Value> _pipe(State state, Value left, Expr right) async {
+    Future<Value> runPipe(Value value) async {
       state.pushScope();
       state.set('_', value);
-      final result = right.run(state);
+      final result = await right.run(state);
       state.popScope();
       switch (result) {
         case DartFunctionValue(:final args):
@@ -262,7 +313,8 @@ class OperatorExpr extends Expr {
       case NumberValue(value: final number, :final unitSet):
         final result = <Value>[];
         for (var i = 0; i < number.toInt(); i++) {
-          final returned = runPipe(NumberValue(Number.fromInt(i), unitSet));
+          final returned =
+              await runPipe(NumberValue(Number.fromInt(i), unitSet));
           switch (returned) {
             case SequenceValue(:final values):
               result.addAll(values);
@@ -274,7 +326,7 @@ class OperatorExpr extends Expr {
       case ListValue(values: final list):
         final result = <Value>[];
         for (final value in list) {
-          final returned = runPipe(value);
+          final returned = await runPipe(value);
           switch (returned) {
             case SequenceValue(:final values):
               result.addAll(values);
@@ -288,11 +340,11 @@ class OperatorExpr extends Expr {
     }
   }
 
-  Value _pipeWhere(State state, Value left, Expr right) {
-    Value runPipe(Value value) {
+  Future<Value> _pipeWhere(State state, Value left, Expr right) async {
+    Future<Value> runPipe(Value value) async {
       state.pushScope();
       state.set('_', value);
-      final result = right.run(state);
+      final result = await right.run(state);
       state.popScope();
       switch (result) {
         case DartFunctionValue(:final args):
@@ -314,7 +366,7 @@ class OperatorExpr extends Expr {
         final result = <Value>[];
         for (var i = 0; i < number.toInt(); i++) {
           final input = NumberValue(Number.fromInt(i), unitSet);
-          final condition = runPipe(input);
+          final condition = await runPipe(input);
           if (condition case BoolValue(:final value)) {
             if (value) {
               result.add(input);
@@ -325,16 +377,18 @@ class OperatorExpr extends Expr {
         }
         return ListValue.fromList(result);
       case ListValue(values: final list):
-        return ListValue.fromList(
-          list.where((value) {
-            final condition = runPipe(value);
-            if (condition case BoolValue(:final value)) {
-              return value;
-            } else {
-              throw MyError.unexpectedType('bool', condition.type);
+        final newList = <Value>[];
+        for (final value in list) {
+          final condition = await runPipe(value);
+          if (condition case BoolValue(value: final conditionValue)) {
+            if (conditionValue) {
+              newList.add(value);
             }
-          }).toList(),
-        );
+          } else {
+            throw MyError.unexpectedType('bool', condition.type);
+          }
+        }
+        return ListValue.fromList(newList);
       default:
         throw MyError.unexpectedType('number or list', left.type);
     }
@@ -373,15 +427,14 @@ class UnaryExpr extends Expr {
   final Expr expr;
 
   @override
-  Value run(State state) {
-    Value value() => expr.run(state);
+  Future<Value> run(State state) async {
     switch (op) {
       case UnaryOperator.not:
-        return value().not();
+        return (await expr.run(state)).not();
       case UnaryOperator.neg:
-        return value().neg();
+        return (await expr.run(state)).neg();
       case UnaryOperator.print:
-        return _print(value());
+        return _print(await expr.run(state));
       case UnaryOperator.inc ||
             UnaryOperator.dec ||
             UnaryOperator.postInc ||
@@ -409,9 +462,10 @@ class UnaryExpr extends Expr {
             throw MyError.expectedIdentifier(expr.runtimeType.toString());
         }
       case UnaryOperator.spread:
-        return switch (value()) {
+        final value = await expr.run(state);
+        return switch (value) {
           ListValue(values: final values) => SequenceValue(values),
-          _ => throw MyError.unexpectedType('list', value().type),
+          _ => throw MyError.unexpectedType('list', value.type),
         };
     }
   }
@@ -421,6 +475,13 @@ class UnaryExpr extends Expr {
     print(value);
     return value;
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'unary',
+        'op': op.toString(),
+        'expr': expr.toJson(),
+      };
 }
 
 enum UnaryOperator {
@@ -441,16 +502,24 @@ class TernaryExpr extends Expr {
   final Expr? falseExpr;
 
   @override
-  Value run(State state) {
-    final conditionValue = condition.run(state);
+  Future<Value> run(State state) async {
+    final conditionValue = await condition.run(state);
     return switch (conditionValue) {
       BoolValue(:final value) => switch (value) {
-          true => trueExpr.run(state),
-          false => falseExpr?.run(state) ?? const UnknownValue(),
+          true => await trueExpr.run(state),
+          false => await falseExpr?.run(state) ?? const UnknownValue(),
         },
       _ => throw Exception('Condition must be a boolean'),
     };
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'ternary',
+        'condition': condition.toJson(),
+        'trueExpr': trueExpr.toJson(),
+        'falseExpr': falseExpr?.toJson(),
+      };
 }
 
 class SequencialExpr extends Expr {
@@ -467,15 +536,15 @@ class SequencialExpr extends Expr {
           );
 
   @override
-  Value run(State state) {
-    final leftValue = left.run(state);
+  Future<Value> run(State state) async {
+    final leftValue = await left.run(state);
     switch (leftValue) {
       case DartFunctionValue():
       case FunValue():
       case ListValue():
       case VectorValue():
       case SequenceValue():
-        final rightValue = right.run(state);
+        final rightValue = await right.run(state);
         final argValues = switch (rightValue) {
           SequenceValue(values: final values) => values,
           _ => [rightValue],
@@ -483,18 +552,23 @@ class SequencialExpr extends Expr {
         final result = leftValue.call(state, argValues);
         return result;
       case BoolValue(:final value):
+        final rightValue = await right.run(state);
         return switch (value) {
-          true => right.run(state),
+          true => rightValue,
           false => const UnknownValue(),
         };
-      // case ListValue():
-      // final rightValue = right.run(state);
-
       default:
-        final rightValue = right.run(state);
+        final rightValue = await right.run(state);
         return leftValue.mul(rightValue);
     }
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'sequencial',
+        'left': left.toJson(),
+        'right': right.toJson(),
+      };
 }
 
 class LinesExpr extends Expr {
@@ -502,11 +576,11 @@ class LinesExpr extends Expr {
   final List<Expr> exprs;
 
   @override
-  Value run(State state) {
+  Future<Value> run(State state) async {
     Value? result;
     try {
       for (final expr in exprs) {
-        result = expr.run(state);
+        result = await expr.run(state);
         state.set('_', result);
       }
     } on ReturnException catch (e) {
@@ -514,27 +588,36 @@ class LinesExpr extends Expr {
     }
     return result ?? const UnknownValue();
   }
+
+  @override
+  dynamic toJson() => exprs.map((expr) => expr.toJson()).toList();
 }
 
 abstract class AnyBlockExpr extends Expr {
-  Value runWithProps(State state, Map<String, Value> props);
+  Future<Value> runWithProps(State state, Map<String, Value> props);
 }
 
 class BlockExpr extends AnyBlockExpr {
-  BlockExpr(this.expr);
-  final LinesExpr expr;
+  BlockExpr(this.lines);
+  final LinesExpr lines;
 
   @override
-  Value run(State state) => runWithProps(state, {});
+  Future<Value> run(State state) => runWithProps(state, {});
 
   @override
-  Value runWithProps(State state, Map<String, Value> props) {
+  Future<Value> runWithProps(State state, Map<String, Value> props) async {
     state.pushScope();
     state.setAll(props);
-    final result = expr.run(state);
+    final result = await lines.run(state);
     state.popScope();
     return result;
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'block',
+        'lines': lines.toJson(),
+      };
 }
 
 class ProtectedBlockExpr extends AnyBlockExpr {
@@ -542,15 +625,15 @@ class ProtectedBlockExpr extends AnyBlockExpr {
   final LinesExpr lines;
 
   @override
-  Value run(State state) => runWithProps(state, {});
+  Future<Value> run(State state) => runWithProps(state, {});
 
   @override
-  Value runWithProps(State state, Map<String, Value> props) {
+  Future<Value> runWithProps(State state, Map<String, Value> props) async {
     state.pushProtectedScope();
     state.setAll(props);
     try {
       for (final expr in lines.exprs) {
-        state.set('_', expr.run(state));
+        state.set('_', await expr.run(state));
       }
     } on ReturnException catch (e) {
       state.popScope();
@@ -560,6 +643,12 @@ class ProtectedBlockExpr extends AnyBlockExpr {
     result.variables.remove('_');
     return ObjectValue(result.variables);
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'protectedBlock',
+        'lines': lines.toJson(),
+      };
 }
 
 class BlockedBlockExpr extends AnyBlockExpr {
@@ -567,17 +656,17 @@ class BlockedBlockExpr extends AnyBlockExpr {
   final LinesExpr lines;
 
   @override
-  Value run(State state) => runWithProps(state, {});
+  Future<Value> run(State state) => runWithProps(state, {});
 
   @override
-  Value runWithProps(State state, Map<String, Value> props) {
+  Future<Value> runWithProps(State state, Map<String, Value> props) async {
     // This is to make sure that all the loaded libraries are not returned.
     state.pushBlockedScope();
     state.pushScope();
     state.setAll(props);
     try {
       for (final expr in lines.exprs) {
-        state.set('_', expr.run(state));
+        state.set('_', await expr.run(state));
       }
     } on ReturnException catch (e) {
       state.popScope();
@@ -589,6 +678,12 @@ class BlockedBlockExpr extends AnyBlockExpr {
     result.variables.remove('_');
     return ObjectValue(result.variables);
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'blockedBlock',
+        'lines': lines.toJson(),
+      };
 }
 
 class SequenceExpr extends Expr {
@@ -604,10 +699,10 @@ class SequenceExpr extends Expr {
   final List<Expr> exprs;
 
   @override
-  Value run(State state) {
+  Future<Value> run(State state) async {
     final values = <Value>[];
     for (final expr in exprs) {
-      final value = expr.run(state);
+      final value = await expr.run(state);
       switch (value) {
         case SequenceValue(values: final values2):
           values.addAll(values2);
@@ -617,6 +712,12 @@ class SequenceExpr extends Expr {
     }
     return SequenceValue(values);
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'sequence',
+        'exprs': exprs.map((expr) => expr.toJson()).toList(),
+      };
 }
 
 class ListExpr extends Expr {
@@ -625,11 +726,17 @@ class ListExpr extends Expr {
   final Expr? expr;
 
   @override
-  Value run(State state) {
-    final value = expr?.run(state);
+  Future<Value> run(State state) async {
+    final value = await expr?.run(state);
     if (value == null) return const ListValue.empty();
     return ListValue(value);
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'list',
+        'expr': expr?.toJson(),
+      };
 }
 
 class VectorExpr extends Expr {
@@ -638,9 +745,15 @@ class VectorExpr extends Expr {
   final Expr? expr;
 
   @override
-  Value run(State state) {
-    final value = expr?.run(state);
+  Future<Value> run(State state) async {
+    final value = await expr?.run(state);
     if (value == null) return const VectorValue.empty();
     return VectorValue(value);
   }
+
+  @override
+  dynamic toJson() => {
+        'type': 'vector',
+        'expr': expr?.toJson(),
+      };
 }

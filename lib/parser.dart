@@ -176,13 +176,79 @@ Parser<Token<LinesExpr>> _createParser() {
     },
   );
 
-  // Property access
-  builder.group().right(
-        Tokens.dot,
-        OperatorExpr.fromToken(Operator.getProperty),
-      );
+  builder.group()
+    ..postfix(
+      [Tokens.openParen, Tokens.closeParen]
+          .toSequenceParser()
+          .flatten()
+          .token(),
+      (left, op) => Token(
+        SequencialExpr(left.value, SequenceExpr([])),
+        left.buffer + op.buffer,
+        left.start,
+        op.stop,
+      ),
+    )
+    ..postfix(
+      <Parser>[Tokens.openParen, expr, Tokens.closeParen]
+          .toSequenceParser()
+          .token(),
+      (left, op) => Token(
+        SequencialExpr(left.value, (op.value[1] as Token<Expr>).value),
+        left.buffer + op.buffer,
+        left.start,
+        op.stop,
+      ),
+    );
+
+  // // Function call
+  // builder.group();
 
   builder.group()
+    ..left(
+      Tokens.dot,
+      (left, operator, right) {
+        if (right.value is VariableExpr) {
+          return Token(
+            OperatorExpr(
+              left.value,
+              Operator.getProperty,
+              right.value,
+              left.start,
+              right.stop,
+            ),
+            left.buffer + operator + right.buffer,
+            left.start,
+            right.stop,
+          );
+        }
+        final rightValue = right.value;
+        // TODO: this does not work for nested sequences
+        // For example: `a.f()(1)` does not work.
+        if (rightValue
+            case SequencialExpr(
+              left: VariableExpr(),
+              right: final sequenceRight,
+            )) {
+          return Token(
+            SequencialExpr(
+              OperatorExpr(
+                left.value,
+                Operator.getProperty,
+                rightValue.left,
+                left.start,
+                right.stop,
+              ),
+              sequenceRight,
+            ),
+            left.buffer + operator + right.buffer,
+            left.start,
+            right.stop,
+          );
+        }
+        throw MyError.syntax('Expected variable after dot');
+      },
+    )
     ..prefix(
       Tokens.spread.token(),
       (op, a) => Token(
@@ -244,32 +310,6 @@ Parser<Token<LinesExpr>> _createParser() {
         op.buffer + a.buffer,
         op.start,
         a.stop,
-      ),
-    );
-
-  // Function call
-  builder.group()
-    ..postfix(
-      [Tokens.openParen, Tokens.closeParen]
-          .toSequenceParser()
-          .flatten()
-          .token(),
-      (left, op) => Token(
-        SequencialExpr(left.value, SequenceExpr([])),
-        left.buffer + op.buffer,
-        left.start,
-        op.stop,
-      ),
-    )
-    ..postfix(
-      <Parser>[Tokens.openParen, builder.loopback, Tokens.closeParen]
-          .toSequenceParser()
-          .token(),
-      (left, op) => Token(
-        SequencialExpr(left.value, (op.value[1] as Token<Expr>).value),
-        left.buffer + op.buffer,
-        left.start,
-        op.stop,
       ),
     );
 

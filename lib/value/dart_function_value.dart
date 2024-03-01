@@ -7,7 +7,7 @@ class DartFunctionValue extends Value {
     Value Function(State state) function,
   ) =>
       DartFunctionValue(
-        (state, args) {
+        (state, args) async {
           if (args.isNotEmpty) {
             throw MyError.argumentLengthError(0, args.length);
           }
@@ -17,11 +17,11 @@ class DartFunctionValue extends Value {
       );
 
   factory DartFunctionValue.from1Param(
-    Value Function(State state, Value arg) function,
+    Future<Value> Function(State state, Value arg) function,
     String arg,
   ) =>
       DartFunctionValue(
-        (state, args) {
+        (state, args) async {
           if (args.length != 1) {
             throw MyError.argumentLengthError(1, args.length);
           }
@@ -30,11 +30,12 @@ class DartFunctionValue extends Value {
         [arg],
       );
 
-  final Value Function(State state, List<Value> args) function;
+  final Future<Value> Function(State state, List<Value> args) function;
   final List<String> args;
 
   @override
-  Value call(State state, List<Value> args) => function(state, args);
+  Future<Value> call(State state, List<Value> args) async =>
+      function(state, args);
 
   @override
   String get type => 'fun(${args.join(', ')})';

@@ -9,7 +9,7 @@ final _randomObject = Random();
 
 final randLibrary = {
   'randint': DartFunctionValue.from1Param(
-    (state, arg) {
+    (state, arg) async {
       if (arg case NumberValue(:final value)) {
         if (value.isInteger) {
           if (value.toInt() <= 0) {

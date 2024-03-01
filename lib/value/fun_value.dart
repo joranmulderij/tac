@@ -6,7 +6,7 @@ class FunValue extends Value {
   final List<String> args;
 
   @override
-  Value call(State state, List<Value> args) {
+  Future<Value> call(State state, List<Value> args) async {
     if (this.args.length != args.length) {
       throw MyError.argumentLengthError(this.args.length, args.length);
     }
@@ -19,8 +19,8 @@ class FunValue extends Value {
     }
     final body = this.body;
     final value = switch (body) {
-      AnyBlockExpr() => body.runWithProps(state, argMap),
-      _ => body.run(state),
+      AnyBlockExpr() => await body.runWithProps(state, argMap),
+      _ => await body.run(state),
     };
     state.popScope();
     return value;
@@ -53,10 +53,10 @@ class MethodValue extends FunValue {
   final ObjectValue object;
 
   @override
-  Value call(State state, List<Value> args) {
+  Future<Value> call(State state, List<Value> args) async {
     state.pushScope();
     state.setAll(object.values);
-    final value = super.call(state, args);
+    final value = await super.call(state, args);
     object.values = state.popScope().variables;
     return value;
   }

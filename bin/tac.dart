@@ -3,7 +3,10 @@ import 'dart:io' show stdin, stdout;
 
 import 'package:args/args.dart';
 import 'package:hotreloader/hotreloader.dart';
+import 'package:tac/state.dart';
 import 'package:tac/tac.dart';
+import 'package:tac/utils/console.dart';
+import 'package:tac/utils/errors.dart';
 
 void main(List<String> args) async {
   final argsParser = getArgsParser();
@@ -13,10 +16,10 @@ void main(List<String> args) async {
     stdout.writeln(argsParser.usage);
     return;
   } else if (options['cmd'] != null) {
-    final tac = TAC(color: color);
-    tac.run(options['cmd'] as String);
+    final tac = State(color: color, onPrint: stdout.writeln);
+    await tac.run(options['cmd'] as String);
   } else if (options.command?.name == 'version') {
-    stdout.writeln(TAC.appVersion);
+    stdout.writeln(appVersion);
   } else if (options['hot-reload'] == true) {
     final reloader = await HotReloader.create();
     stdout.writeln('HotReloader listening.');
@@ -57,8 +60,8 @@ ArgParser getArgsParser() {
 
 Future<void> runRepl({required bool color, HotReloader? reloader}) async {
   stdout.writeln('Copyright (c) 2024 Joran Mulderij');
-  stdout.writeln('TAC  v${TAC.appVersion}');
-  final tac = TAC(color: color);
+  stdout.writeln('TAC  v$appVersion');
+  final state = State(color: color, onPrint: stdout.writeln);
   // String? lastInput;
   while (true) {
     stdout.write('> ');
@@ -79,6 +82,17 @@ Future<void> runRepl({required bool color, HotReloader? reloader}) async {
     //   input = '_$input';
     // }
     // lastInput = input;
-    tac.run(input);
+    try {
+      final value = await state.run(input);
+      state.print(
+        '  ${Console.green('=', color)} ${value.toConsoleString(color)} ',
+      );
+    } on MyError catch (e) {
+      stdout.writeln(Console.red(e.toString(), color));
+    } catch (e, st) {
+      stdout.writeln(Console.red('Unexpected error:', color));
+      stdout.writeln(Console.red(e.toString(), color));
+      stdout.writeln(Console.red(st.toString(), color));
+    }
   }
 }

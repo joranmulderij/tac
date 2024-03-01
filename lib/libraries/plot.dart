@@ -18,7 +18,7 @@ final plotLibrary = {
 // - Convert the matrix to a list of braille characters
 // - Print the list of braille characters
 final DartFunctionValue _splot = DartFunctionValue.from1Param(
-  (state, arg) {
+  (state, arg) async {
     final console = Console();
     final boxGlyphSet = BoxGlyphSet.rounded();
     final width = console.windowWidth - 1;
@@ -30,7 +30,7 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
     final step = (max - min) / plotWidth;
     final values = <num>[];
     for (var x = min; x < max; x += step) {
-      final value = arg.call(
+      final value = await arg.call(
         state,
         [NumberValue(FloatNumber(x), UnitSet.empty)],
       );

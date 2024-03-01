@@ -4,41 +4,41 @@ import '../utils.dart';
 
 void main() {
   group('Boolean', () {
-    test('Literals', () {
-      expect(run('true'), 'true');
-      expect(run('false'), 'false');
+    test('Literals', () async {
+      expect(await run('true'), 'true');
+      expect(await run('false'), 'false');
     });
-    test('Equality', () {
-      expect(run('true == true'), 'true');
-      expect(run('true == false'), 'false');
-      expect(run('false == true'), 'false');
-      expect(run('false == false'), 'true');
+    test('Equality', () async {
+      expect(await run('true == true'), 'true');
+      expect(await run('true == false'), 'false');
+      expect(await run('false == true'), 'false');
+      expect(await run('false == false'), 'true');
     });
-    test('Inequality', () {
-      expect(run('true != true'), 'false');
-      expect(run('true != false'), 'true');
-      expect(run('false != true'), 'true');
-      expect(run('false != false'), 'false');
+    test('Inequality', () async {
+      expect(await run('true != true'), 'false');
+      expect(await run('true != false'), 'true');
+      expect(await run('false != true'), 'true');
+      expect(await run('false != false'), 'false');
     });
-    test('Negation', () {
-      expect(run('!true'), 'false');
-      expect(run('!false'), 'true');
+    test('Negation', () async {
+      expect(await run('!true'), 'false');
+      expect(await run('!false'), 'true');
     });
-    test('Logical AND', () {
-      expect(run('true && true'), 'true');
-      expect(run('true && false'), 'false');
-      expect(run('false && true'), 'false');
-      expect(run('false && false'), 'false');
+    test('Logical AND', () async {
+      expect(await run('true && true'), 'true');
+      expect(await run('true && false'), 'false');
+      expect(await run('false && true'), 'false');
+      expect(await run('false && false'), 'false');
     });
-    test('Logical OR', () {
-      expect(run('true || true'), 'true');
-      expect(run('true || false'), 'true');
-      expect(run('false || true'), 'true');
-      expect(run('false || false'), 'false');
+    test('Logical OR', () async {
+      expect(await run('true || true'), 'true');
+      expect(await run('true || false'), 'true');
+      expect(await run('false || true'), 'true');
+      expect(await run('false || false'), 'false');
     });
-    test('Operator precedence', () {
-      expect(run('true || false && false'), 'true');
-      expect(run('true && (false || false)'), 'false');
+    test('Operator precedence', () async {
+      expect(await run('true || false && false'), 'true');
+      expect(await run('true && (false || false)'), 'false');
     });
   });
 }

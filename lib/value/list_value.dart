@@ -21,7 +21,7 @@ class ListValue extends Value {
       '[${values.map((e) => e.toConsoleString(color)).join(', ')}]';
 
   @override
-  Value call(State state, List<Value> args) {
+  Future<Value> call(State state, List<Value> args) async {
     if (args.length != 1) {
       throw MyError.argumentLengthError(1, args.length);
     }
