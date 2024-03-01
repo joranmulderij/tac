@@ -30,7 +30,6 @@
 //       }
 //       // remaining = timeout - s.elapsed;
 //     }
-//     v();
 //     // _WaitForUtils.waitForEvent(timeout: remaining);
 //   }
 //   if (timeout != null) {

@@ -8,10 +8,13 @@ environment:
 
 dependencies:
   ansicolor: ^2.0.1
+  args: ^2.4.2
   collection: ^1.18.0
+  console: ^4.1.0
   dart_console2: ^3.0.0
   equatable: ^2.0.5
   hotreloader: ^4.1.0
+  http: ^1.2.1
   meta: ^1.11.0
   petitparser:
     git:
