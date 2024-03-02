@@ -16,6 +16,7 @@ final coreLibrary = {
   'type': _type,
   'length': _length,
   'string': _string,
+  'expr': _expr,
   'save': _save,
   'import': _import,
   'load': _load,
@@ -66,6 +67,13 @@ final _length = DartFunctionValue.from1Param(
 final _string = DartFunctionValue.from1Param(
   (state, arg) async {
     return StringValue(arg.toString());
+  },
+  'value',
+);
+
+final _expr = DartFunctionValue.from1Param(
+  (state, arg) async {
+    return StringValue(arg.toExpr());
   },
   'value',
 );

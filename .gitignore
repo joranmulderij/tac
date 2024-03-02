@@ -4,3 +4,4 @@
 *.exe
 coverage/
 build/
+test.tac

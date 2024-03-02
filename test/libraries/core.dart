@@ -72,6 +72,16 @@ void main() {
       expect(await run('string unknown'), '"unknown"');
       expect(await run('string {{}}'), '"{}"');
     });
+    test('expr', () async {
+      expect(await run('expr 1'), '"1"');
+      expect(await run('expr "1"'), '""1""');
+      expect(await run('expr true'), '"true"');
+      expect(await run('expr false'), '"false"');
+      expect(await run('expr unknown'), '"unknown"');
+      expect(await run('expr {{}}'), '"{{}}"');
+      expect(await run('expr 0f20'), '"0f20"');
+      expect(await run('eval expr 0f20'), '0f20.0');
+    });
     test('print', () async {
       expect(await runWithPrint('print 1'), ('1', '1'));
       expect(await runWithPrint('print "a"'), ('a', '"a"'));

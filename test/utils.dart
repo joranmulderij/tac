@@ -26,6 +26,7 @@ Future<(String, String)> runWithPrint(String input) async {
       final ast2 = parse(ast.toExpr());
       final value2 = await ast2.run(state2);
       _runCount++;
+      // TODO: compare the ast's
       expect(value.toConsoleString(false), value2.toConsoleString(false));
     } catch (e) {
       rethrow;
