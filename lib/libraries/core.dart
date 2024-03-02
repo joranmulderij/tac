@@ -82,7 +82,7 @@ final _save = DartFunctionValue.from2Params(
   (state, arg1, arg2) async {
     if (arg1 case StringValue(value: final path)) {
       final file = File(path);
-      await file.writeAsString('return ${arg2.toExpr()}');
+      await file.writeAsString('return(${arg2.toExpr()})');
       return arg2;
     } else {
       throw MyError.unexpectedType('string', arg1.type);

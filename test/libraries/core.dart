@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -63,6 +65,21 @@ void main() {
       expect(await run('eval "a = 1"; a'), '1');
       expect(await run('eval "return 1; 2"'), '1');
       expect(await run('eval 1'), 'TypeError: Expected string, got number');
+    });
+    test('save', () async {
+      expect(
+        await run('save("test/temp.tac", "Hello World!")'),
+        '"Hello World!"',
+      );
+      expect(await run('load "test/temp.tac"'), '"Hello World!"');
+      expect(
+        await run('save("test/temp.tac", x->x^2)'),
+        'fun(x)',
+      );
+      expect(await run('load "test/temp.tac"'), 'fun(x)');
+      expect(await run('load("test/temp.tac")(4)'), '16');
+
+      File('test/temp.tac').deleteSync();
     });
     test('string', () async {
       expect(await run('string 1'), '"1"');
