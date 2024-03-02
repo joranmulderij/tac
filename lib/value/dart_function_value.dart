@@ -30,6 +30,21 @@ class DartFunctionValue extends Value {
         [arg],
       );
 
+  factory DartFunctionValue.from2Params(
+    Future<Value> Function(State state, Value arg1, Value arg2) function,
+    String arg1,
+    String arg2,
+  ) =>
+      DartFunctionValue(
+        (state, args) async {
+          if (args.length != 2) {
+            throw MyError.argumentLengthError(2, args.length);
+          }
+          return function(state, args[0], args[1]);
+        },
+        [arg1, arg2],
+      );
+
   final Future<Value> Function(State state, List<Value> args) function;
   final List<String> args;
 
@@ -57,4 +72,7 @@ class DartFunctionValue extends Value {
         const ListEquality<String>().hash(args),
         function,
       ]);
+
+  @override
+  String toExpr() => throw const MyError('Cannot convert to expression');
 }

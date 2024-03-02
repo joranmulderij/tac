@@ -12,6 +12,7 @@ void main(List<String> args) async {
   final argsParser = getArgsParser();
   final options = argsParser.parse(args);
   final color = options['color'] == true;
+  final printAst = options['print-ast'] == true;
   if (options['help'] == true) {
     stdout.writeln(argsParser.usage);
     return;
@@ -23,11 +24,11 @@ void main(List<String> args) async {
   } else if (options['hot-reload'] == true) {
     final reloader = await HotReloader.create();
     stdout.writeln('HotReloader listening.');
-    await runRepl(color: color, reloader: reloader);
+    await runRepl(color: color, printAst: printAst, reloader: reloader);
     await reloader.stop();
     stdout.writeln('HotReloader stopped.');
   } else {
-    await runRepl(color: color);
+    await runRepl(color: color, printAst: printAst);
   }
 }
 
@@ -48,6 +49,10 @@ ArgParser getArgsParser() {
     defaultsTo: true,
   );
   argsParser.addFlag(
+    'print-ast',
+    help: 'Print the AST of the code before running it',
+  );
+  argsParser.addFlag(
     'help',
     abbr: 'h',
     help: 'Print this help message',
@@ -58,10 +63,18 @@ ArgParser getArgsParser() {
   return argsParser;
 }
 
-Future<void> runRepl({required bool color, HotReloader? reloader}) async {
+Future<void> runRepl({
+  required bool color,
+  required bool printAst,
+  HotReloader? reloader,
+}) async {
   stdout.writeln('Copyright (c) 2024 Joran Mulderij');
   stdout.writeln('TAC  v$appVersion');
-  final state = State(color: color, onPrint: stdout.writeln);
+  final state = State(
+    color: color,
+    printAst: printAst,
+    onPrint: stdout.writeln,
+  );
   // String? lastInput;
   while (true) {
     stdout.write('> ');

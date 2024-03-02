@@ -38,4 +38,7 @@ class SequenceValue extends Value {
 
   @override
   int get hashCode => const ListEquality<Value>().hash(values);
+
+  @override
+  String toExpr() => '(${values.map((e) => e.toExpr()).join(',')})';
 }

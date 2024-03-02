@@ -15,4 +15,7 @@ class UnknownValue extends Value {
 
   @override
   int get hashCode => 0;
+
+  @override
+  String toExpr() => 'unknown';
 }

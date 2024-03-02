@@ -11,6 +11,14 @@
             "program": "bin/tac.dart",
             "console": "terminal",
             "args": ["--hot-reload"]
+        },
+        {
+            "name": "tac-print-ast",
+            "request": "launch",
+            "type": "dart",
+            "program": "bin/tac.dart",
+            "console": "terminal",
+            "args": ["--hot-reload", "--print-ast"]
         }
     ]
 }

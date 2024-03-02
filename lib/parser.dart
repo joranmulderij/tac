@@ -364,6 +364,12 @@ Parser<Token<LinesExpr>> _createParser() {
   //   ),
   // );
 
+  // Function definition
+  builder.group().right(
+        Tokens.funCreate,
+        OperatorExpr.fromToken(Operator.funCreate),
+      );
+
   // Sequence
   builder.group().left(Tokens.comma, (left, op, right) {
     final expr = switch ((left.value, right.value)) {
@@ -378,12 +384,6 @@ Parser<Token<LinesExpr>> _createParser() {
     };
     return Token(expr, left.buffer, left.start, right.stop);
   });
-
-  // Function definition
-  builder.group().right(
-        Tokens.funCreate,
-        OperatorExpr.fromToken(Operator.funCreate),
-      );
 
   // Ternary
   builder.group().postfix(
@@ -483,7 +483,7 @@ class Tokens {
   static final semicolon = char(';').trimNoNewline();
   static final colon = char(':').trimNoNewline();
 
-  static final funCreate = string('=>').trimNoNewline();
+  static final funCreate = string('->').trimNoNewline();
 
   static final spread = string('...').trimNoNewline();
 

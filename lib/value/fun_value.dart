@@ -45,6 +45,9 @@ class FunValue extends Value {
         const ListEquality<String>().hash(args),
         body,
       ]);
+
+  @override
+  String toExpr() => '(${args.join(',')}) -> ${body.toExpr()}';
 }
 
 class MethodValue extends FunValue {

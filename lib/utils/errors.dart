@@ -3,8 +3,8 @@ import 'package:tac/value/value.dart';
 class MyError implements Exception {
   const MyError(this.message);
 
-  MyError.unexpectedType(String expected, String got)
-      : message = 'TypeError: Expected $expected, got $got';
+  MyError.unexpectedType(String expected, String? got)
+      : message = 'TypeError: Expected $expected, got ${got ?? 'unknown'}';
 
   MyError.unitParseError(String unit)
       : message = 'UnitParseError: [$unit] not a valid unit';

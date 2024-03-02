@@ -3,6 +3,7 @@ part of 'value.dart';
 class BoolValue extends Value {
   // ignore: avoid_positional_boolean_parameters
   const BoolValue(this.value);
+
   final bool value;
 
   @override
@@ -20,4 +21,7 @@ class BoolValue extends Value {
 
   @override
   int get hashCode => value.hashCode;
+
+  @override
+  String toExpr() => value.toString();
 }

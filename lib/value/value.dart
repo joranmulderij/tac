@@ -54,6 +54,8 @@ sealed class Value {
   String toString() => toConsoleString(false);
   // ignore: avoid_positional_boolean_parameters
   String toConsoleString(bool color);
+
+  String toExpr();
 }
 
 abstract class ValueWithUnit {

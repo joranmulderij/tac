@@ -1,4 +1,5 @@
 import 'package:petitparser/petitparser.dart';
+import 'package:tac/ast/ast_tree.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/state.dart';
 import 'package:tac/units.dart';
@@ -8,7 +9,8 @@ import 'package:tac/value/value.dart';
 sealed class Expr {
   Future<Value> run(State state);
 
-  dynamic toJson();
+  AstTree toTree();
+  String toExpr();
 }
 
 class NumberExpr extends Expr {
@@ -21,11 +23,16 @@ class NumberExpr extends Expr {
   Future<Value> run(State state) async => NumberValue(rational, unitSet);
 
   @override
-  dynamic toJson() => {
-        'type': 'number',
-        'rational': rational.toString(),
-        'unitSet': unitSet.toString(),
-      };
+  AstTree toTree() => AstTree(
+        'number',
+        {
+          'value': rational.toString(),
+          if (!unitSet.isEmpty) 'unitSet': unitSet.toString(),
+        },
+      );
+
+  @override
+  String toExpr() => '$rational${unitSet.isEmpty ? '' : '[$unitSet]'}';
 }
 
 class VariableExpr extends Expr {
@@ -39,10 +46,10 @@ class VariableExpr extends Expr {
   String toString() => 'VariableExpr($name)';
 
   @override
-  dynamic toJson() => {
-        'type': 'variable',
-        'name': name,
-      };
+  AstTree toTree() => AstTree('variable', {'name': name});
+
+  @override
+  String toExpr() => name;
 }
 
 class StringExpr extends Expr {
@@ -53,10 +60,10 @@ class StringExpr extends Expr {
   Future<Value> run(State state) async => StringValue(string);
 
   @override
-  dynamic toJson() => {
-        'type': 'string',
-        'string': string,
-      };
+  AstTree toTree() => AstTree('string', {'value': string});
+
+  @override
+  String toExpr() => '"$string"';
 }
 
 class OperatorExpr extends Expr {
@@ -68,12 +75,14 @@ class OperatorExpr extends Expr {
   final int stop;
 
   @override
-  dynamic toJson() => {
-        'type': 'operator',
-        'op': op.toString(),
-        'left': left.toJson(),
-        'right': right.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'operator',
+        {'op': op.name},
+        [left.toTree(), right.toTree()],
+      );
+
+  @override
+  String toExpr() => '(${left.toExpr()}${op.symbol}${right.toExpr()})';
 
   static Token<OperatorExpr> Function(Token<Expr>, String, Token<Expr>)
       fromToken(
@@ -396,29 +405,33 @@ class OperatorExpr extends Expr {
 }
 
 enum Operator {
-  add,
-  sub,
-  mul,
-  div,
-  mod,
-  pow,
-  assign,
-  plusAssign,
-  minusAssign,
-  mulAssign,
-  divAssign,
-  pipe,
-  pipeWhere,
-  lt,
-  gt,
-  eq,
-  ne,
-  lte,
-  gte,
-  funCreate,
-  and,
-  or,
-  getProperty,
+  add('+'),
+  sub('-'),
+  mul('*'),
+  div('/'),
+  mod('%'),
+  pow('^'),
+  assign('='),
+  plusAssign('+='),
+  minusAssign('-='),
+  mulAssign('*='),
+  divAssign('/='),
+  pipe('|'),
+  pipeWhere('|?'),
+  lt('<'),
+  gt('>'),
+  eq('=='),
+  ne('!='),
+  lte('<='),
+  gte('>='),
+  funCreate('->'),
+  and('&&'),
+  or('||'),
+  getProperty('.');
+
+  const Operator(this.symbol);
+
+  final String symbol;
 }
 
 class UnaryExpr extends Expr {
@@ -433,8 +446,6 @@ class UnaryExpr extends Expr {
         return (await expr.run(state)).not();
       case UnaryOperator.neg:
         return (await expr.run(state)).neg();
-      case UnaryOperator.print:
-        return _print(await expr.run(state));
       case UnaryOperator.inc ||
             UnaryOperator.dec ||
             UnaryOperator.postInc ||
@@ -470,29 +481,35 @@ class UnaryExpr extends Expr {
     }
   }
 
-  Value _print(Value value) {
-    // ignore: avoid_print
-    print(value);
-    return value;
-  }
+  @override
+  AstTree toTree() => AstTree(
+        'unary',
+        {'op': op.name},
+        [expr.toTree()],
+      );
 
   @override
-  dynamic toJson() => {
-        'type': 'unary',
-        'op': op.toString(),
-        'expr': expr.toJson(),
-      };
+  String toExpr() {
+    if (op.isPost) {
+      return '${expr.toExpr()}${op.symbol}';
+    }
+    return '${op.symbol}${expr.toExpr()}';
+  }
 }
 
 enum UnaryOperator {
-  not,
-  neg,
-  inc,
-  dec,
-  postInc,
-  postDec,
-  print,
-  spread,
+  not('!'),
+  neg('-'),
+  inc('++'),
+  dec('--'),
+  postInc('++', isPost: true),
+  postDec('--', isPost: true),
+  spread('...');
+
+  const UnaryOperator(this.symbol, {this.isPost = false});
+
+  final String symbol;
+  final bool isPost;
 }
 
 class TernaryExpr extends Expr {
@@ -514,12 +531,24 @@ class TernaryExpr extends Expr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'ternary',
-        'condition': condition.toJson(),
-        'trueExpr': trueExpr.toJson(),
-        'falseExpr': falseExpr?.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'ternary',
+        {},
+        [
+          condition.toTree(),
+          trueExpr.toTree(),
+          if (falseExpr != null) falseExpr!.toTree(),
+        ],
+      );
+
+  @override
+  String toExpr() {
+    var expr = '${condition.toExpr()} ? ${trueExpr.toExpr()}';
+    if (falseExpr != null) {
+      expr += ' : ${falseExpr!.toExpr()}';
+    }
+    return expr;
+  }
 }
 
 class SequencialExpr extends Expr {
@@ -564,11 +593,14 @@ class SequencialExpr extends Expr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'sequencial',
-        'left': left.toJson(),
-        'right': right.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'sequencial',
+        {},
+        [left.toTree(), right.toTree()],
+      );
+
+  @override
+  String toExpr() => '${left.toExpr()}(${right.toExpr()})';
 }
 
 class LinesExpr extends Expr {
@@ -590,7 +622,14 @@ class LinesExpr extends Expr {
   }
 
   @override
-  dynamic toJson() => exprs.map((expr) => expr.toJson()).toList();
+  AstTree toTree() => AstTree(
+        'lines',
+        {},
+        exprs.map((expr) => expr.toTree()).toList(),
+      );
+
+  @override
+  String toExpr() => exprs.map((expr) => expr.toExpr()).join(';');
 }
 
 abstract class AnyBlockExpr extends Expr {
@@ -614,10 +653,14 @@ class BlockExpr extends AnyBlockExpr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'block',
-        'lines': lines.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'block',
+        {},
+        [lines.toTree()],
+      );
+
+  @override
+  String toExpr() => '{${lines.toExpr()}}';
 }
 
 class ProtectedBlockExpr extends AnyBlockExpr {
@@ -645,10 +688,14 @@ class ProtectedBlockExpr extends AnyBlockExpr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'protectedBlock',
-        'lines': lines.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'protectedBlock',
+        {},
+        [lines.toTree()],
+      );
+
+  @override
+  String toExpr() => '{{${lines.toExpr()}}}';
 }
 
 class BlockedBlockExpr extends AnyBlockExpr {
@@ -680,10 +727,14 @@ class BlockedBlockExpr extends AnyBlockExpr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'blockedBlock',
-        'lines': lines.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'blockedBlock',
+        {},
+        [lines.toTree()],
+      );
+
+  @override
+  String toExpr() => '{{{${lines.toExpr()}}}}';
 }
 
 class SequenceExpr extends Expr {
@@ -714,10 +765,14 @@ class SequenceExpr extends Expr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'sequence',
-        'exprs': exprs.map((expr) => expr.toJson()).toList(),
-      };
+  AstTree toTree() => AstTree(
+        'sequence',
+        {},
+        exprs.map((expr) => expr.toTree()).toList(),
+      );
+
+  @override
+  String toExpr() => '(${exprs.map((expr) => expr.toExpr()).join(',')})';
 }
 
 class ListExpr extends Expr {
@@ -733,10 +788,14 @@ class ListExpr extends Expr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'list',
-        'expr': expr?.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'list',
+        {},
+        [if (expr != null) expr!.toTree()],
+      );
+
+  @override
+  String toExpr() => '[${expr?.toExpr() ?? ''}]';
 }
 
 class VectorExpr extends Expr {
@@ -752,8 +811,12 @@ class VectorExpr extends Expr {
   }
 
   @override
-  dynamic toJson() => {
-        'type': 'vector',
-        'expr': expr?.toJson(),
-      };
+  AstTree toTree() => AstTree(
+        'vector',
+        {},
+        [if (expr != null) expr!.toTree()],
+      );
+
+  @override
+  String toExpr() => '<${expr?.toExpr() ?? ''}>';
 }

@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:console/console.dart' show createTree;
 import 'package:tac/libraries/core.dart';
 import 'package:tac/libraries/math.dart';
 import 'package:tac/libraries/plot.dart';
@@ -9,8 +8,8 @@ import 'package:tac/value/value.dart';
 
 class State {
   State({
-    required this.color,
     required this.onPrint,
+    this.color = false,
     this.printAst = false,
   });
 
@@ -87,7 +86,7 @@ class State {
   Future<Value> run(String input) async {
     final ast = parse(input);
     if (printAst) {
-      print(const JsonEncoder.withIndent('  ').convert(ast.toJson()));
+      print(createTree(ast.toTree().toJson()));
     }
     final value = await ast.run(this);
     return value;

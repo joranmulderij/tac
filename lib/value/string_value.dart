@@ -32,4 +32,7 @@ class StringValue extends Value {
 
   @override
   int get hashCode => value.hashCode;
+
+  @override
+  String toExpr() => '"$value"';
 }

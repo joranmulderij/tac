@@ -124,6 +124,24 @@ class NumberValue extends Value implements ValueWithUnit {
   }
 
   @override
+  Value neg() => NumberValue(-value, unitSet);
+
+  @override
+  String get type => 'number';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NumberValue &&
+          (value == other.value && unitSet == other.unitSet ||
+              unitSet.dimensions == other.unitSet.dimensions &&
+                  value * unitSet.multiplier ==
+                      other.value * other.unitSet.multiplier);
+
+  @override
+  int get hashCode => value.hashCode ^ unitSet.hashCode;
+
+  @override
   String toConsoleString(bool color) {
     var unitString = unitSet.toString();
     if (unitString.isNotEmpty) {
@@ -154,22 +172,16 @@ class NumberValue extends Value implements ValueWithUnit {
   }
 
   @override
-  Value neg() => NumberValue(-value, unitSet);
+  String toString() {
+    var unitString = unitSet.toString();
+    if (unitString.isNotEmpty) {
+      unitString = '[$unitString]';
+    }
+    return '$value$unitString';
+  }
 
   @override
-  String get type => 'number';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is NumberValue &&
-          (value == other.value && unitSet == other.unitSet ||
-              unitSet.dimensions == other.unitSet.dimensions &&
-                  value * unitSet.multiplier ==
-                      other.value * other.unitSet.multiplier);
-
-  @override
-  int get hashCode => value.hashCode ^ unitSet.hashCode;
+  String toExpr() => toString();
 }
 
 UnitSet _checkUnitsEq(UnitSet left, UnitSet right) {

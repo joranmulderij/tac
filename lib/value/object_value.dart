@@ -46,4 +46,12 @@ class ObjectValue extends Value {
 
   @override
   int get hashCode => const MapEquality<String, Value>().hash(values);
+
+  @override
+  String toExpr() {
+    if (values.isEmpty) {
+      return '{{}}';
+    }
+    return '{{${values.entries.map((e) => '${e.key}=${e.value.toExpr()}').join(';')}}}';
+  }
 }

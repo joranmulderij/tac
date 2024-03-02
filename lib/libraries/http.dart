@@ -5,20 +5,25 @@ import 'package:tac/value/value.dart';
 final httpLibrary = {
   'get': DartFunctionValue.from1Param(
     (state, arg) async {
-      if (arg case StringValue(:final value)) {
-        final url = Uri.parse(value);
-        final response = await http.get(url);
-        return ObjectValue({
-          'statusCode': NumberValue.fromNum(response.statusCode),
-          'body': StringValue(response.body),
-          'headers': ObjectValue(
-            response.headers
-                .map((key, value) => MapEntry(key, StringValue(value))),
-          ),
-        });
-      } else {
-        throw MyError.unexpectedType('string', arg.type);
-      }
+      final response = await switch (arg) {
+        StringValue(:final value) => http.get(Uri.parse(value)),
+        ObjectValue(:final values) => () {
+            final url = values['url'];
+            if (url is! StringValue) {
+              throw MyError.unexpectedType('string', url?.type);
+            }
+            return http.get(Uri.parse(url.value));
+          }(),
+        _ => throw MyError.unexpectedType('string', arg.type),
+      };
+      return ObjectValue({
+        'statusCode': NumberValue.fromNum(response.statusCode),
+        'body': StringValue(response.body),
+        'headers': ObjectValue(
+          response.headers
+              .map((key, value) => MapEntry(key, StringValue(value))),
+        ),
+      });
     },
     'url',
   ),
