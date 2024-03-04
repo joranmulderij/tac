@@ -19,18 +19,18 @@ class NumberValue extends Value implements ValueWithUnit {
 
   @override
   Value add(Value other) => switch (other) {
-        NumberValue(:final value, :final unitSet) => NumberValue(
-            this.value + _unitsConvertMultiplier(this.unitSet, unitSet, value),
-            _checkUnitsEq(this.unitSet, unitSet),
+        NumberValue() => NumberValue(
+            this.value + other.convertTo(this.unitSet),
+            this.unitSet,
           ),
         _ => super.add(other),
       };
 
   @override
   Value sub(Value other) => switch (other) {
-        NumberValue(:final value, :final unitSet) => NumberValue(
-            this.value - _unitsConvertMultiplier(this.unitSet, unitSet, value),
-            _checkUnitsEq(this.unitSet, unitSet),
+        NumberValue() => NumberValue(
+            this.value - other.convertTo(this.unitSet),
+            this.unitSet,
           ),
         _ => super.sub(other),
       };
@@ -38,7 +38,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value mul(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) => NumberValue(
-            this.value * _unitsConvertMultiplier(this.unitSet, unitSet, value),
+            this.value * value,
             this.unitSet + unitSet,
           ),
         _ => super.mul(other),
@@ -47,7 +47,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value div(Value other) => switch (other) {
         NumberValue(:final value, :final unitSet) => NumberValue(
-            this.value / _unitsConvertMultiplier(this.unitSet, unitSet, value),
+            this.value / value,
             this.unitSet - unitSet,
           ),
         _ => super.div(other),
@@ -55,9 +55,9 @@ class NumberValue extends Value implements ValueWithUnit {
 
   @override
   Value mod(Value other) => switch (other) {
-        NumberValue(:final value, :final unitSet) => NumberValue(
-            this.value % _unitsConvertMultiplier(this.unitSet, unitSet, value),
-            _checkUnitsEq(this.unitSet, unitSet),
+        NumberValue() => NumberValue(
+            this.value % other.convertTo(this.unitSet),
+            this.unitSet,
           ),
         _ => super.mod(other),
       };
@@ -81,21 +81,17 @@ class NumberValue extends Value implements ValueWithUnit {
 
   @override
   Value lt(Value other) {
-    switch (other) {
-      case NumberValue(:final value, :final unitSet):
-        _checkUnitsEq(this.unitSet, unitSet);
-        return this.value < value;
-      default:
-        return super.gte(other);
-    }
+    return switch (other) {
+      NumberValue() => this.value < other.convertTo(unitSet),
+      _ => super.gte(other)
+    };
   }
 
   @override
   Value lte(Value other) {
     switch (other) {
-      case NumberValue(:final value, :final unitSet):
-        _checkUnitsEq(this.unitSet, unitSet);
-        return this.value <= value;
+      case NumberValue():
+        return this.value <= other.convertTo(unitSet);
       default:
         return super.gte(other);
     }
@@ -104,9 +100,8 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value gt(Value other) {
     switch (other) {
-      case NumberValue(:final value, :final unitSet):
-        _checkUnitsEq(this.unitSet, unitSet);
-        return this.value > value;
+      case NumberValue():
+        return this.value > other.convertTo(unitSet);
       default:
         return super.gte(other);
     }
@@ -115,9 +110,8 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value gte(Value other) {
     switch (other) {
-      case NumberValue(:final value, :final unitSet):
-        _checkUnitsEq(this.unitSet, unitSet);
-        return this.value >= value;
+      case NumberValue():
+        return this.value >= other.convertTo(unitSet);
       default:
         return super.gte(other);
     }
@@ -128,6 +122,18 @@ class NumberValue extends Value implements ValueWithUnit {
 
   @override
   String get type => 'number';
+
+  Number convertTo(UnitSet otherUnitSet) {
+    if (otherUnitSet == unitSet) {
+      return this.value;
+    }
+    if (otherUnitSet.dimensions != unitSet.dimensions) {
+      throw MyError.unexpectedUnit(otherUnitSet.toString(), unitSet.toString());
+    }
+    final normalized = (value + otherUnitSet.offset) * unitSet.multiplier;
+    final newNumber = normalized / otherUnitSet.multiplier - unitSet.offset;
+    return newNumber;
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -145,7 +151,8 @@ class NumberValue extends Value implements ValueWithUnit {
   String toConsoleString(bool color) {
     var unitString = unitSet.toString();
     if (unitString.isNotEmpty) {
-      unitString = '[${Console.purple(unitString, color)}]';
+      unitString =
+          '${Console.gray('[', color)}${Console.purple(unitString, color)}${Console.gray(']', color)}';
     }
     if (value is FloatNumber) {
       final num = value.toNum().toDouble();
@@ -182,20 +189,4 @@ class NumberValue extends Value implements ValueWithUnit {
 
   @override
   String toExpr() => toString();
-}
-
-UnitSet _checkUnitsEq(UnitSet left, UnitSet right) {
-  if (left.dimensions == right.dimensions) {
-    return left; // also return a multiplier
-  } else {
-    throw MyError.unexpectedUnit(left.toString(), right.toString());
-  }
-}
-
-Number _unitsConvertMultiplier(UnitSet left, UnitSet right, Number value) {
-  if (left.isEmpty || right.isEmpty) {
-    return value;
-  }
-  final normalized = (value + right.offset) * right.multiplier;
-  return normalized / left.multiplier - left.offset;
 }

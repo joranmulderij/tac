@@ -2,7 +2,7 @@ import 'package:petitparser/petitparser.dart';
 import 'package:tac/ast/ast_tree.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/state.dart';
-import 'package:tac/units.dart';
+import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
@@ -819,4 +819,31 @@ class VectorExpr extends Expr {
 
   @override
   String toExpr() => '<${expr?.toExpr() ?? ''}>';
+}
+
+class UnitConvertExpr extends Expr {
+  UnitConvertExpr(this.expr, this.unitSet);
+  final Expr expr;
+  final UnitSet unitSet;
+
+  @override
+  Future<Value> run(State state) async {
+    final value = await expr.run(state);
+    switch (value) {
+      case NumberValue():
+        return NumberValue(value.convertTo(unitSet), unitSet);
+      default:
+        throw MyError.unexpectedType('number', value.type);
+    }
+  }
+
+  @override
+  AstTree toTree() => AstTree(
+        'unitConvert',
+        {'unitSet': unitSet.toString()},
+        [expr.toTree()],
+      );
+
+  @override
+  String toExpr() => '${expr.toExpr()}=>[$unitSet]';
 }

@@ -18,7 +18,8 @@ void main(List<String> args) async {
     return;
   } else if (options['cmd'] != null) {
     final tac = State(color: color, onPrint: stdout.writeln);
-    await tac.run(options['cmd'] as String);
+    final value = await tac.run(options['cmd'] as String);
+    stdout.writeln(value.toConsoleString(color));
   } else if (options.command?.name == 'version') {
     stdout.writeln(appVersion);
   } else if (options['hot-reload'] == true) {

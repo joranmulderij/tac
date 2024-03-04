@@ -1,7 +1,7 @@
 import 'package:petitparser/petitparser.dart';
 import 'package:tac/ast/ast.dart';
 import 'package:tac/number/number.dart';
-import 'package:tac/units.dart';
+import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
 
 final _parser = _createParser();
@@ -313,6 +313,19 @@ Parser<Token<LinesExpr>> _createParser() {
       ),
     );
 
+  builder.group().postfix(
+        [Tokens.unitConvert, unitSet].toSequenceParser().token(),
+        (left, op) => Token(
+          UnitConvertExpr(
+            left.value,
+            op.value[1] as UnitSet,
+          ),
+          left.buffer,
+          left.start,
+          op.stop,
+        ),
+      );
+
   // ..prefix(
   //   Tokens.gt.token(),
   //   (op, a) => Token(
@@ -484,6 +497,7 @@ class Tokens {
   static final colon = char(':').trimNoNewline();
 
   static final funCreate = string('->').trimNoNewline();
+  static final unitConvert = string('=>').trimNoNewline();
 
   static final spread = string('...').trimNoNewline();
 
