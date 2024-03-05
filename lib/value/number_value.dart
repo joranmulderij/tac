@@ -20,7 +20,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value add(Value other) => switch (other) {
         NumberValue() => NumberValue(
-            this.value + other.convertTo(this.unitSet),
+            this.value + other.convertToUnit(this.unitSet),
             this.unitSet,
           ),
         _ => super.add(other),
@@ -29,7 +29,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value sub(Value other) => switch (other) {
         NumberValue() => NumberValue(
-            this.value - other.convertTo(this.unitSet),
+            this.value - other.convertToUnit(this.unitSet),
             this.unitSet,
           ),
         _ => super.sub(other),
@@ -56,7 +56,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value mod(Value other) => switch (other) {
         NumberValue() => NumberValue(
-            this.value % other.convertTo(this.unitSet),
+            this.value % other.convertToUnit(this.unitSet),
             this.unitSet,
           ),
         _ => super.mod(other),
@@ -82,7 +82,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   Value lt(Value other) {
     return switch (other) {
-      NumberValue() => this.value < other.convertTo(unitSet),
+      NumberValue() => this.value < other.convertToUnit(unitSet),
       _ => super.gte(other)
     };
   }
@@ -91,7 +91,7 @@ class NumberValue extends Value implements ValueWithUnit {
   Value lte(Value other) {
     switch (other) {
       case NumberValue():
-        return this.value <= other.convertTo(unitSet);
+        return this.value <= other.convertToUnit(unitSet);
       default:
         return super.gte(other);
     }
@@ -101,7 +101,7 @@ class NumberValue extends Value implements ValueWithUnit {
   Value gt(Value other) {
     switch (other) {
       case NumberValue():
-        return this.value > other.convertTo(unitSet);
+        return this.value > other.convertToUnit(unitSet);
       default:
         return super.gte(other);
     }
@@ -111,7 +111,7 @@ class NumberValue extends Value implements ValueWithUnit {
   Value gte(Value other) {
     switch (other) {
       case NumberValue():
-        return this.value >= other.convertTo(unitSet);
+        return this.value >= other.convertToUnit(unitSet);
       default:
         return super.gte(other);
     }
@@ -123,7 +123,7 @@ class NumberValue extends Value implements ValueWithUnit {
   @override
   String get type => 'number';
 
-  Number convertTo(UnitSet otherUnitSet) {
+  Number convertToUnit(UnitSet otherUnitSet) {
     if (otherUnitSet == unitSet) {
       return this.value;
     }

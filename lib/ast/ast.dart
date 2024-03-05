@@ -831,7 +831,7 @@ class UnitConvertExpr extends Expr {
     final value = await expr.run(state);
     switch (value) {
       case NumberValue():
-        return NumberValue(value.convertTo(unitSet), unitSet);
+        return NumberValue(value.convertToUnit(unitSet), unitSet);
       default:
         throw MyError.unexpectedType('number', value.type);
     }

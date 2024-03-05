@@ -7,3 +7,4 @@
 - Make objects use single brackets
 - Add string escaping
 - Function equality
+- DimensionSignature toString

@@ -1,21 +1,6 @@
 import 'package:tac/number/number.dart';
 import 'package:tac/units/unitset.dart';
 
-const mass = DimensionSignature(mass: 1);
-const length = DimensionSignature(length: 1);
-const time = DimensionSignature(time: 1);
-const temperature = DimensionSignature(temperature: 1);
-const force = DimensionSignature(mass: 1, length: 1, time: -2);
-const pressure = DimensionSignature(mass: 1, length: -1, time: -2);
-const energy = DimensionSignature(mass: 1, length: 2, time: -2);
-const power = DimensionSignature(mass: 1, length: 2, time: -3);
-
-const current = DimensionSignature(current: 1);
-const voltage = DimensionSignature(mass: 1, length: 2, time: -3, current: -1);
-const electricCharge = DimensionSignature(time: 1, current: 1);
-const resistance =
-    DimensionSignature(mass: 1, length: 2, time: -3, current: -2);
-
 enum Unit {
   // Mass
   microGram('µg', ['ug'], _millionth, mass),
@@ -41,15 +26,6 @@ enum Unit {
   hour('hour', ['h', 'hours'], _thirtySixHundred, time),
   day('day', ['d', 'days'], _thirtySixHundred, time),
   year('year', ['years'], _thirtySixHundred, time),
-
-  // Current
-  milliAmpere('mA', [], _thousandth, current),
-  ampere('A', [], _one, current),
-  kiloAmpere('kA', [], _thousand, current),
-
-  // Voltage
-  milliVolt('mV', [], _thousandth, voltage),
-  volt('V', [], _one, voltage),
 
   // Temperature
   kelvin('K', [], _one, temperature),
@@ -88,7 +64,24 @@ enum Unit {
 
   // Energy
   joule('J', [], _one, energy),
-  kiloJoule('kJ', [], _thousand, energy);
+  kiloJoule('kJ', [], _thousand, energy),
+  megaJoule('MJ', [], _million, energy),
+  gigaJoule('GJ', [], _billion, energy),
+
+  // Frequency
+  hertz('Hz', [], _one, frequency),
+  kiloHertz('kHz', [], _thousand, frequency),
+  megaHertz('MHz', [], _million, frequency),
+  gigaHertz('GHz', [], _billion, frequency),
+
+  // Current
+  milliAmpere('mA', [], _thousandth, current),
+  ampere('A', [], _one, current),
+  kiloAmpere('kA', [], _thousand, current),
+
+  // Voltage
+  milliVolt('mV', [], _thousandth, voltage),
+  volt('V', [], _one, voltage);
 
   const Unit(
     this.name,
@@ -126,4 +119,31 @@ enum Unit {
   static Number _fahrenheitToKelvin() => Number.fromDouble(5 / 9);
   static Number _fahrenheitOffset() => Number.fromDouble(459.67);
   static Number _celciusOffset() => Number.fromDouble(273.15);
+
+// Base
+  static const mass = DimensionSignature(mass: 1);
+  static const length = DimensionSignature(length: 1);
+  static const time = DimensionSignature(time: 1);
+  static const temperature = DimensionSignature(temperature: 1);
+
+// Mechanics
+  static const force = DimensionSignature(mass: 1, length: 1, time: -2);
+  static const pressure = DimensionSignature(mass: 1, length: -1, time: -2);
+  static const energy = DimensionSignature(mass: 1, length: 2, time: -2);
+  static const power = DimensionSignature(mass: 1, length: 2, time: -3);
+  static const frequency = DimensionSignature(time: -1);
+  static const velocity = DimensionSignature(length: 1, time: -1);
+  static const acceleration = DimensionSignature(length: 1, time: -2);
+
+// Electricity
+  static const current = DimensionSignature(current: 1);
+  static const voltage =
+      DimensionSignature(mass: 1, length: 2, time: -3, current: -1);
+  static const electricCharge = DimensionSignature(time: 1, current: 1);
+  static const resistance =
+      DimensionSignature(mass: 1, length: 2, time: -3, current: -2);
+  static const capacitance =
+      DimensionSignature(mass: -1, length: -2, time: 4, current: 2);
+  static const inductance =
+      DimensionSignature(mass: 1, length: 2, time: -2, current: -2);
 }

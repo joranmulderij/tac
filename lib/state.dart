@@ -2,6 +2,7 @@ import 'package:console/console.dart' show createTree;
 import 'package:tac/libraries/core.dart';
 import 'package:tac/libraries/math.dart';
 import 'package:tac/libraries/plot.dart';
+import 'package:tac/libraries/units.dart';
 import 'package:tac/parser.dart';
 import 'package:tac/utils/console.dart';
 import 'package:tac/value/value.dart';
@@ -99,6 +100,7 @@ class Scope {
       variables.addAll(coreLibrary);
       variables.addAll(mathLibrary);
       variables.addAll(plotLibrary);
+      variables.addAll(unitsLibrary);
     }
   }
 
