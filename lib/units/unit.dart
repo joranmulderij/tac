@@ -102,10 +102,10 @@ enum Unit {
   @override
   String toString() => name;
 
-  static Number _millionth() => Number.fromDouble(0.000001);
-  static Number _thousandth() => Number.fromDouble(0.001);
-  static Number _hundredth() => Number.fromDouble(0.01);
-  static Number _tenth() => Number.fromDouble(0.1);
+  static Number _millionth() => Number.fromString('0.000001');
+  static Number _thousandth() => Number.fromString('0.001');
+  static Number _hundredth() => Number.fromString('0.01');
+  static Number _tenth() => Number.fromString('0.1');
   static Number _one() => Number.one;
   static Number _ten() => Number.fromInt(10);
   static Number _hundred() => Number.fromInt(100);
@@ -116,9 +116,9 @@ enum Unit {
   static Number _sixty() => Number.fromInt(60);
   static Number _thirtySixHundred() => Number.fromInt(3600);
 
-  static Number _fahrenheitToKelvin() => Number.fromDouble(5 / 9);
-  static Number _fahrenheitOffset() => Number.fromDouble(459.67);
-  static Number _celciusOffset() => Number.fromDouble(273.15);
+  static Number _fahrenheitToKelvin() => Number.fromInt(5) / Number.fromInt(9);
+  static Number _fahrenheitOffset() => Number.fromString('459.67');
+  static Number _celciusOffset() => Number.fromString('273.15');
 
 // Base
   static const mass = DimensionSignature(mass: 1);
