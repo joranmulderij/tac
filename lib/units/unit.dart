@@ -120,13 +120,13 @@ enum Unit {
   static Number _fahrenheitOffset() => Number.fromString('459.67');
   static Number _celciusOffset() => Number.fromString('273.15');
 
-// Base
+  // Base
   static const mass = DimensionSignature(mass: 1);
   static const length = DimensionSignature(length: 1);
   static const time = DimensionSignature(time: 1);
   static const temperature = DimensionSignature(temperature: 1);
 
-// Mechanics
+  // Mechanics
   static const force = DimensionSignature(mass: 1, length: 1, time: -2);
   static const pressure = DimensionSignature(mass: 1, length: -1, time: -2);
   static const energy = DimensionSignature(mass: 1, length: 2, time: -2);
@@ -135,7 +135,7 @@ enum Unit {
   static const velocity = DimensionSignature(length: 1, time: -1);
   static const acceleration = DimensionSignature(length: 1, time: -2);
 
-// Electricity
+  // Electricity
   static const current = DimensionSignature(current: 1);
   static const voltage =
       DimensionSignature(mass: 1, length: 2, time: -3, current: -1);

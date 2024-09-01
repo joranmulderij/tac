@@ -1,5 +1,5 @@
 import 'package:ansicolor/ansicolor.dart';
-import 'package:dart_console2/dart_console2.dart';
+import 'package:dart_console/dart_console.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
