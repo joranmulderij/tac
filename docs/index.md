@@ -1,5 +1,5 @@
-title:
----
+# TAC Advanced Calculator
+
 ## About TAC
 
 TAC stands for "TAC Advanced Calculator". It is a command line calculator geared towards scientific and engineering applications.
@@ -8,6 +8,9 @@ TAC stands for "TAC Advanced Calculator". It is a command line calculator geared
 
 - Infinite precision numbers
 - Units
+- Variables
+- Functions
+- Vectors
 
 ## Basic syntax
 
@@ -58,3 +61,15 @@ The `number` type in TAC is used for integers and decimal number.
 Numbers are preferably stored as infinite precision numbers.
 These are internally stored as a ratio of two arbirary size integers.
 Some numbers cannot be stored as a ratio, such as `sqrt(2)`. These are stored as floating point numbers.
+Floating point numbers are indicated by a question mark at the end of the number.
+
+```tac
+> 1
+1
+> 1.0
+1
+> 1/3
+1/3 ≈ 0.3333333333333333
+> sqrt(2)
+1.4142135623730951?
+```
