@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:tac/ast/ast.dart';
-import 'package:tac/libraries/http.dart';
 import 'package:tac/libraries/math.dart';
 import 'package:tac/libraries/rand.dart';
 import 'package:tac/libraries/units.dart';
@@ -121,7 +120,6 @@ Future<Value> _loadLibrary(Tac state, Value arg) async {
           'core' => ObjectValue(coreLibrary),
           'math' => ObjectValue(mathLibrary),
           'rand' => ObjectValue(randLibrary),
-          'http' => ObjectValue(httpLibrary),
           'units' => ObjectValue(unitsLibrary),
           _ => throw MyError.unknownLibrary(path),
         },
