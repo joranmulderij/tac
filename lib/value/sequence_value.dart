@@ -8,7 +8,7 @@ class SequenceValue extends Value {
   String get type => 'sequence';
 
   @override
-  Future<Value> call(State state, List<Value> args) async {
+  Future<Value> call(Tac state, List<Value> args) async {
     if (args.length != 1) {
       throw MyError.argumentLengthError(1, args.length);
     }

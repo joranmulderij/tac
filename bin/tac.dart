@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io' show stdin, stdout;
 
 import 'package:args/args.dart';
+import 'package:dart_console/dart_console.dart';
 import 'package:hotreloader/hotreloader.dart';
-import 'package:tac/state.dart';
 import 'package:tac/tac.dart';
 import 'package:tac/utils/console.dart';
 import 'package:tac/utils/errors.dart';
@@ -17,7 +17,7 @@ void main(List<String> args) async {
     stdout.writeln(argsParser.usage);
     return;
   } else if (options['cmd'] != null) {
-    final tac = State(color: color, onPrint: stdout.writeln);
+    final tac = Tac(color: color, onPrint: stdout.writeln);
     final value = await tac.run(options['cmd'] as String);
     stdout.writeln(value.toConsoleString(color));
   } else if (options.command?.name == 'version') {
@@ -69,12 +69,14 @@ Future<void> runRepl({
   required bool printAst,
   HotReloader? reloader,
 }) async {
-  stdout.writeln('Copyright (c) 2024 Joran Mulderij');
-  stdout.writeln('TAC  v$appVersion');
-  final state = State(
+  final console = Console.scrolling();
+
+  console.writeLine('Copyright (c) 2024 Joran Mulderij');
+  console.writeLine('TAC  v$appVersion');
+  final state = Tac(
     color: color,
     printAst: printAst,
-    onPrint: stdout.writeln,
+    onPrint: console.writeLine,
   );
   // String? lastInput;
   while (true) {
@@ -99,14 +101,14 @@ Future<void> runRepl({
     try {
       final value = await state.run(input);
       state.print(
-        '  ${Console.green('=', color)} ${value.toConsoleString(color)} ',
+        '  ${ConsoleColors.green('=', color)} ${value.toConsoleString(color)} ',
       );
     } on MyError catch (e) {
-      stdout.writeln(Console.red(e.toString(), color));
+      stdout.writeln(ConsoleColors.red(e.toString(), color));
     } catch (e, st) {
-      stdout.writeln(Console.red('Unexpected error:', color));
-      stdout.writeln(Console.red(e.toString(), color));
-      stdout.writeln(Console.red(st.toString(), color));
+      stdout.writeln(ConsoleColors.red('Unexpected error:', color));
+      stdout.writeln(ConsoleColors.red(e.toString(), color));
+      stdout.writeln(ConsoleColors.red(st.toString(), color));
     }
   }
 }

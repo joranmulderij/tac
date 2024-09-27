@@ -6,7 +6,7 @@ import 'package:tac/libraries/math.dart';
 import 'package:tac/libraries/rand.dart';
 import 'package:tac/libraries/units.dart';
 import 'package:tac/parser.dart';
-import 'package:tac/state.dart';
+import 'package:tac/tac.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
@@ -114,7 +114,7 @@ final _load = DartFunctionValue.from1Param(
 
 // Utils
 
-Future<Value> _loadLibrary(State state, Value arg) async {
+Future<Value> _loadLibrary(Tac state, Value arg) async {
   if (arg case StringValue(value: final path)) {
     final library = switch (null) {
       _ when path.startsWith('tac:') => switch (path.substring(4)) {
@@ -133,7 +133,7 @@ Future<Value> _loadLibrary(State state, Value arg) async {
   }
 }
 
-Future<Value> _loadLibraryFromPath(State state, String path) async {
+Future<Value> _loadLibraryFromPath(Tac state, String path) async {
   try {
     final file = File(path);
     final contents = file.readAsStringSync();

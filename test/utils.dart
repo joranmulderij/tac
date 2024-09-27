@@ -1,5 +1,5 @@
 import 'package:tac/parser.dart';
-import 'package:tac/state.dart';
+import 'package:tac/tac.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:test/test.dart';
 
@@ -16,13 +16,13 @@ Future<(String, String)> runWithPrint(String input) async {
     return printBuffer.toString().substring(0, printBuffer.length - 1);
   }
 
-  final state = State(onPrint: printBuffer.writeln);
+  final state = Tac(onPrint: printBuffer.writeln);
   try {
     final ast = parse(input);
     final value = await ast.run(state);
     _runCount++;
     try {
-      final state2 = State(onPrint: (_) {});
+      final state2 = Tac(onPrint: (_) {});
       final ast2 = parse(ast.toExpr());
       final value2 = await ast2.run(state2);
       _runCount++;

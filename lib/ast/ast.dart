@@ -1,16 +1,33 @@
 import 'package:petitparser/petitparser.dart';
 import 'package:tac/ast/ast_tree.dart';
 import 'package:tac/number/number.dart';
-import 'package:tac/state.dart';
+import 'package:tac/tac.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
 sealed class Expr {
-  Future<Value> run(State state);
+  Future<Value> run(Tac state);
 
   AstTree toTree();
   String toExpr();
+}
+
+class ValueExpr extends Expr {
+  ValueExpr(this.value);
+
+  final Value value;
+
+  @override
+  Future<Value> run(Tac state) async => value;
+
+  @override
+  String toExpr() => value.toExpr();
+
+  @override
+  AstTree toTree() => AstTree('value', {
+        'value': value.toString(),
+      });
 }
 
 class NumberExpr extends Expr {
@@ -20,7 +37,7 @@ class NumberExpr extends Expr {
   final UnitSet unitSet;
 
   @override
-  Future<Value> run(State state) async => NumberValue(rational, unitSet);
+  Future<Value> run(Tac state) async => NumberValue(rational, unitSet);
 
   @override
   AstTree toTree() => AstTree(
@@ -40,7 +57,7 @@ class VariableExpr extends Expr {
   final String name;
 
   @override
-  Future<Value> run(State state) async => state.get(name);
+  Future<Value> run(Tac state) async => state.get(name);
 
   @override
   String toString() => 'VariableExpr($name)';
@@ -57,7 +74,7 @@ class StringExpr extends Expr {
   final String string;
 
   @override
-  Future<Value> run(State state) async => StringValue(string);
+  Future<Value> run(Tac state) async => StringValue(string);
 
   @override
   AstTree toTree() => AstTree('string', {'value': string});
@@ -67,12 +84,10 @@ class StringExpr extends Expr {
 }
 
 class OperatorExpr extends Expr {
-  OperatorExpr(this.left, this.op, this.right, this.start, this.stop);
+  OperatorExpr(this.left, this.op, this.right);
   final Operator op;
   final Expr left;
   final Expr right;
-  final int start;
-  final int stop;
 
   @override
   AstTree toTree() => AstTree(
@@ -94,8 +109,6 @@ class OperatorExpr extends Expr {
             left.value,
             operator,
             mapRight?.call(left.value, right.value) ?? right.value,
-            left.start,
-            right.stop,
           ),
           left.buffer + op + right.buffer,
           left.start,
@@ -104,7 +117,7 @@ class OperatorExpr extends Expr {
   }
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     Future<Value> leftValue() => left.run(state);
     Future<Value> rightValue() => right.run(state);
 
@@ -182,7 +195,7 @@ class OperatorExpr extends Expr {
     return null;
   }
 
-  Future<Value> _assign(State state, Expr left, Expr right) async {
+  Future<Value> _assign(Tac state, Expr left, Expr right) async {
     if (left case SequencialExpr(left: final nameExpr, right: final argExpr)) {
       if (nameExpr case (VariableExpr(:final name))) {
         if (argExpr case VariableExpr(name: final arg)) {
@@ -227,7 +240,7 @@ class OperatorExpr extends Expr {
     return _assignValue(state, left, rightValue);
   }
 
-  Value _assignValue(State state, Expr left, Value rightValue) {
+  Value _assignValue(Tac state, Expr left, Value rightValue) {
     if (left case VariableExpr(:final name)) {
       state.set(name, rightValue);
       return rightValue;
@@ -297,7 +310,7 @@ class OperatorExpr extends Expr {
     // }
   }
 
-  Future<Value> _pipe(State state, Value left, Expr right) async {
+  Future<Value> _pipe(Tac state, Value left, Expr right) async {
     Future<Value> runPipe(Value value) async {
       state.pushScope();
       state.set('_', value);
@@ -349,7 +362,7 @@ class OperatorExpr extends Expr {
     }
   }
 
-  Future<Value> _pipeWhere(State state, Value left, Expr right) async {
+  Future<Value> _pipeWhere(Tac state, Value left, Expr right) async {
     Future<Value> runPipe(Value value) async {
       state.pushScope();
       state.set('_', value);
@@ -440,7 +453,7 @@ class UnaryExpr extends Expr {
   final Expr expr;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     switch (op) {
       case UnaryOperator.not:
         return (await expr.run(state)).not();
@@ -519,7 +532,7 @@ class TernaryExpr extends Expr {
   final Expr? falseExpr;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     final conditionValue = await condition.run(state);
     return switch (conditionValue) {
       BoolValue(:final value) => switch (value) {
@@ -565,7 +578,7 @@ class SequencialExpr extends Expr {
           );
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     final leftValue = await left.run(state);
     switch (leftValue) {
       case DartFunctionValue():
@@ -608,7 +621,7 @@ class LinesExpr extends Expr {
   final List<Expr> exprs;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     Value? result;
     try {
       for (final expr in exprs) {
@@ -633,7 +646,7 @@ class LinesExpr extends Expr {
 }
 
 abstract class AnyBlockExpr extends Expr {
-  Future<Value> runWithProps(State state, Map<String, Value> props);
+  Future<Value> runWithProps(Tac state, Map<String, Value> props);
 }
 
 class BlockExpr extends AnyBlockExpr {
@@ -641,10 +654,10 @@ class BlockExpr extends AnyBlockExpr {
   final LinesExpr lines;
 
   @override
-  Future<Value> run(State state) => runWithProps(state, {});
+  Future<Value> run(Tac state) => runWithProps(state, {});
 
   @override
-  Future<Value> runWithProps(State state, Map<String, Value> props) async {
+  Future<Value> runWithProps(Tac state, Map<String, Value> props) async {
     state.pushScope();
     state.setAll(props);
     final result = await lines.run(state);
@@ -668,10 +681,10 @@ class ProtectedBlockExpr extends AnyBlockExpr {
   final LinesExpr lines;
 
   @override
-  Future<Value> run(State state) => runWithProps(state, {});
+  Future<Value> run(Tac state) => runWithProps(state, {});
 
   @override
-  Future<Value> runWithProps(State state, Map<String, Value> props) async {
+  Future<Value> runWithProps(Tac state, Map<String, Value> props) async {
     state.pushProtectedScope();
     state.setAll(props);
     try {
@@ -703,10 +716,10 @@ class BlockedBlockExpr extends AnyBlockExpr {
   final LinesExpr lines;
 
   @override
-  Future<Value> run(State state) => runWithProps(state, {});
+  Future<Value> run(Tac state) => runWithProps(state, {});
 
   @override
-  Future<Value> runWithProps(State state, Map<String, Value> props) async {
+  Future<Value> runWithProps(Tac state, Map<String, Value> props) async {
     // This is to make sure that all the loaded libraries are not returned.
     state.pushBlockedScope();
     state.pushScope();
@@ -750,7 +763,7 @@ class SequenceExpr extends Expr {
   final List<Expr> exprs;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     final values = <Value>[];
     for (final expr in exprs) {
       final value = await expr.run(state);
@@ -781,7 +794,7 @@ class ListExpr extends Expr {
   final Expr? expr;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     final value = await expr?.run(state);
     if (value == null) return const ListValue.empty();
     return ListValue(value);
@@ -804,10 +817,10 @@ class VectorExpr extends Expr {
   final Expr? expr;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     final value = await expr?.run(state);
     if (value == null) return const VectorValue.empty();
-    return VectorValue(value);
+    return VectorValue.fromSingleValue(value);
   }
 
   @override
@@ -827,7 +840,7 @@ class UnitConvertExpr extends Expr {
   final UnitSet unitSet;
 
   @override
-  Future<Value> run(State state) async {
+  Future<Value> run(Tac state) async {
     final value = await expr.run(state);
     switch (value) {
       case NumberValue():

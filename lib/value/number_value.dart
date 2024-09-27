@@ -41,6 +41,28 @@ class NumberValue extends Value implements ValueWithUnit {
             this.value * value,
             this.unitSet + unitSet,
           ),
+        // FunValue(:final args, :final body) => FunValue(
+        //     args,
+        //     OperatorExpr(
+        //       ValueExpr(other),
+        //       Operator.mul,
+        //       body,
+        //     ),
+        //   ),
+        // DartFunctionValue(:final args, :final function) => FunValue(
+        //     args,
+        //     OperatorExpr(
+        //       ValueExpr(other),
+        //       Operator.mul,
+        //       SequencialExpr(
+        //         ValueExpr(other),
+        //         SequenceExpr(args),
+        //       ),
+        //     ),
+        //   ),
+        VectorValue(:final values) => VectorValue(
+            values.map((v) => v.mul(this)).toList(),
+          ),
         _ => super.mul(other),
       };
 
@@ -152,25 +174,26 @@ class NumberValue extends Value implements ValueWithUnit {
     var unitString = unitSet.toString();
     if (unitString.isNotEmpty) {
       unitString =
-          '${Console.gray('[', color)}${Console.purple(unitString, color)}${Console.gray(']', color)}';
+          '${ConsoleColors.gray('[', color)}${ConsoleColors.purple(unitString, color)}${ConsoleColors.gray(']', color)}';
     }
     if (value is FloatNumber) {
       final num = value.toNum().toDouble();
-      final prefix = Console.gray('0f', color);
+      final postfix = ConsoleColors.green('?', color);
       if (num.isNegative) {
-        final numString = Console.green((-num).toString(), color);
-        final negSign = Console.green('-', color);
-        return '$negSign$prefix$numString$unitString';
+        final numString = ConsoleColors.green((-num).toString(), color);
+        final negSign = ConsoleColors.green('-', color);
+        return '$negSign$numString$postfix$unitString';
       } else {
-        final numString = Console.green(num.toString(), color);
-        return '$prefix$numString$unitString';
+        final numString = ConsoleColors.green(num.toString(), color);
+        return '$numString$postfix$unitString';
       }
     } else if (value.isInteger) {
-      final valueString = Console.green(value.toString(), color);
+      final valueString = ConsoleColors.green(value.toString(), color);
       return '$valueString$unitString';
     } else {
-      final valueString = Console.green(value.toString(), color);
-      final valueNumString = Console.green(value.toNum().toString(), color);
+      final valueString = ConsoleColors.green(value.toString(), color);
+      final valueNumString =
+          ConsoleColors.green(value.toNum().toString(), color);
       if (valueString.length > 20) {
         return '$valueNumString$unitString';
       }

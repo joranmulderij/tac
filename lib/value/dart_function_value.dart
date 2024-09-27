@@ -4,7 +4,7 @@ class DartFunctionValue extends Value {
   const DartFunctionValue(this.function, this.args);
 
   factory DartFunctionValue.from0Params(
-    Value Function(State state) function,
+    Value Function(Tac state) function,
   ) =>
       DartFunctionValue(
         (state, args) async {
@@ -17,7 +17,7 @@ class DartFunctionValue extends Value {
       );
 
   factory DartFunctionValue.from1Param(
-    Future<Value> Function(State state, Value arg) function,
+    Future<Value> Function(Tac state, Value arg) function,
     String arg,
   ) =>
       DartFunctionValue(
@@ -31,7 +31,7 @@ class DartFunctionValue extends Value {
       );
 
   factory DartFunctionValue.from2Params(
-    Future<Value> Function(State state, Value arg1, Value arg2) function,
+    Future<Value> Function(Tac state, Value arg1, Value arg2) function,
     String arg1,
     String arg2,
   ) =>
@@ -45,11 +45,11 @@ class DartFunctionValue extends Value {
         [arg1, arg2],
       );
 
-  final Future<Value> Function(State state, List<Value> args) function;
+  final Future<Value> Function(Tac state, List<Value> args) function;
   final List<String> args;
 
   @override
-  Future<Value> call(State state, List<Value> args) async =>
+  Future<Value> call(Tac state, List<Value> args) async =>
       function(state, args);
 
   @override
@@ -57,7 +57,7 @@ class DartFunctionValue extends Value {
 
   @override
   String toConsoleString(bool color) => 'fun(${args.map(
-        (e) => Console.blue(e, color),
+        (e) => ConsoleColors.blue(e, color),
       ).join(', ')})';
 
   @override

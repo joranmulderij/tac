@@ -258,5 +258,5 @@ class FloatNumber extends Number {
   int get hashCode => _value.hashCode;
 
   @override
-  String toString() => '0f$_value';
+  String toString() => '$_value?';
 }

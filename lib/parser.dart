@@ -38,33 +38,28 @@ Parser<Token<LinesExpr>> _createParser() {
           Tokens.closeBracket)
       .map((values) => UnitSet.parse(values[1] as String));
 
-  final integer = (digit().plus().flatten() & unitSet.optional())
-      .token()
-      .trimNoNewline()
-      .mapToken(
-        (token) => NumberExpr(
-          Number.fromString(token.value[0] as String),
-          (token.value[1] as UnitSet?) ?? UnitSet.empty,
-        ),
-      );
+  final integer =
+      (digit().plus().flatten() & char('?').optional() & unitSet.optional())
+          .token()
+          .trimNoNewline()
+          .mapToken(
+            (token) => NumberExpr(
+              token.value[1] == null
+                  ? Number.fromString(token.value[0] as String)
+                  : FloatNumber(int.parse(token.value[0] as String)),
+              (token.value[2] as UnitSet?) ?? UnitSet.empty,
+            ),
+          );
   final decimal = ((digit().star() & char('.') & digit().plus()).flatten() &
+          char('?').optional() &
           unitSet.optional())
       .token()
       .trimNoNewline()
       .mapToken(
         (token) => NumberExpr(
-          Number.fromString(token.value[0] as String),
-          (token.value[1] as UnitSet?) ?? UnitSet.empty,
-        ),
-      );
-  final float = (Tokens.floatPrefix &
-          (digit().plus() & (char('.') & digit().plus()).optional()).flatten() &
-          unitSet.optional())
-      .token()
-      .trimNoNewline()
-      .mapToken(
-        (token) => NumberExpr(
-          FloatNumber(num.parse(token.value[1] as String)),
+          token.value[1] == null
+              ? Number.fromString(token.value[0] as String)
+              : FloatNumber(num.parse(token.value[0] as String)),
           (token.value[2] as UnitSet?) ?? UnitSet.empty,
         ),
       );
@@ -117,7 +112,6 @@ Parser<Token<LinesExpr>> _createParser() {
         .token();
   }
 
-  builder.primitive(float);
   builder.primitive(decimal);
   builder.primitive(integer);
   builder.primitive(variable);
@@ -214,8 +208,6 @@ Parser<Token<LinesExpr>> _createParser() {
               left.value,
               Operator.getProperty,
               right.value,
-              left.start,
-              right.stop,
             ),
             left.buffer + operator + right.buffer,
             left.start,
@@ -236,8 +228,6 @@ Parser<Token<LinesExpr>> _createParser() {
                 left.value,
                 Operator.getProperty,
                 rightValue.left,
-                left.start,
-                right.stop,
               ),
               sequenceRight,
             ),
@@ -302,15 +292,6 @@ Parser<Token<LinesExpr>> _createParser() {
         op.start,
         a.stop,
       ),
-    )
-    ..prefix(
-      Tokens.minus.token(),
-      (op, a) => Token(
-        UnaryExpr(UnaryOperator.neg, a.value),
-        op.buffer + a.buffer,
-        op.start,
-        a.stop,
-      ),
     );
 
   builder.group().postfix(
@@ -336,6 +317,22 @@ Parser<Token<LinesExpr>> _createParser() {
   // ),
   // );
 
+  // Sequencial
+  // TODO: replace [char('@').not()] with a parser that never matches
+  builder
+      .group()
+      .right(char('@').not().flatten().token(), SequencialExpr.fromToken);
+
+  builder.group().prefix(
+        Tokens.minus.token(),
+        (op, a) => Token(
+          UnaryExpr(UnaryOperator.neg, a.value),
+          op.buffer + a.buffer,
+          op.start,
+          a.stop,
+        ),
+      );
+
   builder.group().right(Tokens.power, OperatorExpr.fromToken(Operator.pow));
 
   builder.group()
@@ -359,11 +356,6 @@ Parser<Token<LinesExpr>> _createParser() {
 
   builder.group().left(Tokens.or, OperatorExpr.fromToken(Operator.or));
 
-  // Function call
-  // TODO: replace [char('@').not()] with a parser that never matches
-  builder
-      .group()
-      .right(char('@').not().flatten().token(), SequencialExpr.fromToken);
   // ..postfix(
   //   [Tokens.openParen, Tokens.closeParen]
   //       .toSequenceParser()
@@ -455,7 +447,7 @@ class Tokens {
   static final mod = char('%').trimNoNewline();
 
   static final plus = char('+').trimNoNewline();
-  static final minus = char('-').trimNoNewline();
+  static final minus = (char('-') & char('-').not()).flatten().trimNoNewline();
 
   static final and = string('&&').trimNoNewline();
   static final or = string('||').trimNoNewline();
@@ -508,8 +500,6 @@ class Tokens {
   static final decrement = string('--').trimNoNewline();
 
   static final dot = char('.').trimNoNewline();
-
-  static final floatPrefix = string('0f').trimNoNewline();
 }
 
 extension MapTokenParser<T1> on Parser<Token<T1>> {

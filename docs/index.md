@@ -1,8 +1,6 @@
-# TAC
-
 ## About TAC
 
-TAC stands for "TAC Advanced Calculator". It is a command line calculator geared towards scientific and engineering calculations.
+TAC stands for "TAC Advanced Calculator". It is a command line calculator geared towards scientific and engineering applications.
 
 ## Features
 

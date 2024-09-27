@@ -1,15 +1,15 @@
 part of 'value.dart';
 
 class VectorValue extends Value {
-  VectorValue(Value value)
+  const VectorValue(this.values);
+
+  VectorValue.fromSingleValue(Value value)
       : values = switch (value) {
           SequenceValue(:final values) => values,
           _ => [value],
         };
 
   const VectorValue.empty() : values = const [];
-
-  const VectorValue.fromList(this.values);
 
   final List<Value> values;
 
@@ -21,7 +21,7 @@ class VectorValue extends Value {
           'Cannot sub vectors of different lengths: ${values.length} and ${other.values.length}',
         );
       }
-      return VectorValue.fromList([
+      return VectorValue([
         for (var i = 0; i < values.length; i++) values[i].sub(other.values[i]),
       ]);
     }
@@ -36,7 +36,7 @@ class VectorValue extends Value {
           'Cannot add vectors of different lengths: ${values.length} and ${other.values.length}',
         );
       }
-      return VectorValue.fromList([
+      return VectorValue([
         for (var i = 0; i < values.length; i++) values[i].add(other.values[i]),
       ]);
     }
@@ -84,7 +84,7 @@ class VectorValue extends Value {
           'Cannot cross vectors of length ${values.length}',
         );
       }
-      return VectorValue.fromList([
+      return VectorValue([
         values[1].mul(other.values[2]).sub(values[2].mul(other.values[1])),
         values[2].mul(other.values[0]).sub(values[0].mul(other.values[2])),
         values[0].mul(other.values[1]).sub(values[1].mul(other.values[0])),
@@ -101,7 +101,7 @@ class VectorValue extends Value {
   String get type => 'vector';
 
   @override
-  Future<Value> call(State state, List<Value> args) async {
+  Future<Value> call(Tac state, List<Value> args) async {
     if (args.length != 1) {
       throw MyError.argumentLengthError(1, args.length);
     }

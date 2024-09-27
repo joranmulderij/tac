@@ -5,3 +5,6 @@
 coverage/
 build/
 test.tac
+
+# FVM Version Cache
+.fvm/

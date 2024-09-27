@@ -15,7 +15,7 @@ void main() {
       expect(await run('type {{}}'), '"object"');
     });
     test('import', () async {
-      expect(await run('sin = unknown; import "tac:math"; sin(0)'), '0f0.0');
+      expect(await run('sin = unknown; import "tac:math"; sin(0)'), '0.0?');
       expect(
         await run('import "tac:anything"'),
         'UnknownLibraryError: Could not find library "tac:anything"',
@@ -39,7 +39,7 @@ void main() {
       expect(await run('import 1'), 'TypeError: Expected string, got number');
     });
     test('load', () async {
-      expect(await run('math = load "tac:math"; math.sin(0)'), '0f0.0');
+      expect(await run('math = load "tac:math"; math.sin(0)'), '0.0?');
       expect(
         await run('import "tac:anything"'),
         'UnknownLibraryError: Could not find library "tac:anything"',
@@ -96,8 +96,8 @@ void main() {
       expect(await run('expr false'), '"false"');
       expect(await run('expr unknown'), '"unknown"');
       expect(await run('expr {{}}'), '"{{}}"');
-      expect(await run('expr 0f20'), '"0f20"');
-      expect(await run('eval expr 0f20'), '0f20.0');
+      expect(await run('expr 20?'), '"20?"');
+      expect(await run('eval expr 20?'), '20.0?');
     });
     test('print', () async {
       expect(await runWithPrint('print 1'), ('1', '1'));

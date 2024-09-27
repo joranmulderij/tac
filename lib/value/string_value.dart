@@ -21,7 +21,7 @@ class StringValue extends Value {
   String toString() => value;
 
   @override
-  String toConsoleString(bool color) => Console.blue('"$value"', color);
+  String toConsoleString(bool color) => ConsoleColors.blue('"$value"', color);
 
   @override
   String get type => 'string';

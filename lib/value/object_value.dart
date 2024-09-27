@@ -34,7 +34,7 @@ class ObjectValue extends Value {
     // ignore: lines_longer_than_80_chars
     return '{ ${values.entries.map(
           (e) =>
-              '${Console.blue(e.key, color)} = ${e.value.toConsoleString(color)}',
+              '${ConsoleColors.blue(e.key, color)} = ${e.value.toConsoleString(color)}',
         ).join('; ')} }';
   }
 

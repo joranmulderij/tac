@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:tac/ast/ast.dart';
 import 'package:tac/number/number.dart';
-import 'package:tac/state.dart';
+import 'package:tac/tac.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/console.dart';
 import 'package:tac/utils/errors.dart';
@@ -40,7 +40,7 @@ sealed class Value {
       throw MyError.binaryOperatorTypeError('>=', type, other.type);
   Value pow(Value other) =>
       throw MyError.binaryOperatorTypeError('^', type, other.type);
-  Future<Value> call(State state, List<Value> args) =>
+  Future<Value> call(Tac state, List<Value> args) =>
       throw MyError.notCallable(type);
   Value not() => throw MyError.unaryOperatorTypeError('!', type);
   Value neg() => throw MyError.unaryOperatorTypeError('-', type);

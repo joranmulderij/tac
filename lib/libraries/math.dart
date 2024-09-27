@@ -18,13 +18,13 @@ final mathLibrary = {
   'exp': _mathFunction(math.exp),
   'pi': const NumberValue(FloatNumber(math.pi), UnitSet.empty),
   'e': const NumberValue(FloatNumber(math.e), UnitSet.empty),
-  'i': VectorValue.fromList(
+  'i': VectorValue(
     [NumberValue.fromNum(1), NumberValue.fromNum(0), NumberValue.fromNum(0)],
   ),
-  'j': VectorValue.fromList(
+  'j': VectorValue(
     [NumberValue.fromNum(0), NumberValue.fromNum(1), NumberValue.fromNum(0)],
   ),
-  'k': VectorValue.fromList(
+  'k': VectorValue(
     [NumberValue.fromNum(0), NumberValue.fromNum(0), NumberValue.fromNum(1)],
   ),
 };

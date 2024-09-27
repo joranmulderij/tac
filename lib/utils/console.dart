@@ -2,7 +2,7 @@
 
 import 'package:ansicolor/ansicolor.dart';
 
-class Console {
+class ConsoleColors {
   static final _red = AnsiPen()..red();
   static final _green = AnsiPen()..green();
   // static final _green = AnsiPen()..rgb(r: 0, g: 0.9, b: 0);
