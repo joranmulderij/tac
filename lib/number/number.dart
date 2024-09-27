@@ -149,8 +149,7 @@ class RationalNumber extends Number {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is RationalNumber && other._value == _value) ||
-      (other is FloatNumber && other._value == _value.toDouble());
+      (other is RationalNumber && other._value == _value);
 
   @override
   int get hashCode => _value.hashCode;
@@ -251,8 +250,7 @@ class FloatNumber extends Number {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is FloatNumber && other._value == _value) ||
-      (other is RationalNumber && other._value.toDouble() == _value);
+      (other is FloatNumber && other._value == _value);
 
   @override
   int get hashCode => _value.hashCode;
