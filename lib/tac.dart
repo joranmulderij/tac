@@ -7,7 +7,8 @@ import 'package:tac/parser.dart';
 import 'package:tac/utils/console.dart';
 import 'package:tac/value/value.dart';
 
-const appVersion = '0.0.1';
+/// Format: `v{major}.{minor}.{patch}`
+const appVersion = 'v0.1.0';
 
 class Tac {
   Tac({
@@ -22,6 +23,10 @@ class Tac {
   final bool printAst;
 
   Value get(String name) {
+    if (name == 'this') {
+      final thisValue = Map<String, Value>.from(scopes.last.variables);
+      return ObjectValue(thisValue);
+    }
     for (final scope in scopes.reversed) {
       if (scope.variables.containsKey(name)) {
         return scope.variables[name]!;
@@ -36,6 +41,10 @@ class Tac {
   }
 
   void set(String name, Value value) {
+    if (name == 'this') {
+      printWarning('Cannot assign to "$name"');
+      return;
+    }
     for (final scope in scopes.reversed) {
       if (scope.variables.containsKey(name)) {
         final oldValue = scope.variables[name]!;

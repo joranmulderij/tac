@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show stdin, stdout;
+import 'dart:io' show exit, stdout;
 
 import 'package:args/args.dart';
 import 'package:dart_console/dart_console.dart';
@@ -69,21 +69,22 @@ Future<void> runRepl({
   required bool printAst,
   HotReloader? reloader,
 }) async {
-  final console = Console.scrolling();
+  final console = Console.scrolling(recordBlanks: false);
 
   console.writeLine('Copyright (c) 2024 Joran Mulderij');
-  console.writeLine('TAC  v$appVersion');
-  final state = Tac(
+  console.writeLine('TAC $appVersion');
+  final tac = Tac(
     color: color,
     printAst: printAst,
     onPrint: console.writeLine,
   );
   // String? lastInput;
   while (true) {
-    stdout.write('> ');
-    final input = stdin.readLineSync();
+    console.write('> ');
+    final input = console.readLine(cancelOnBreak: true);
+    if (input == null) exit(0);
+    if (input.isEmpty) continue;
     await reloader?.reloadCode();
-    if (input == null || input.isEmpty) continue;
     if (RegExp(r'^ *$').hasMatch(input) || RegExp(r'^ *; *$').hasMatch(input)) {
       continue;
     }
@@ -99,10 +100,12 @@ Future<void> runRepl({
     // }
     // lastInput = input;
     try {
-      final value = await state.run(input);
-      state.print(
-        '  ${ConsoleColors.green('=', color)} ${value.toConsoleString(color)} ',
-      );
+      final value = await tac.run(input);
+      if (!input.trim().endsWith(';')) {
+        tac.print(
+          '  ${ConsoleColors.green('=', color)} ${value.toConsoleString(color)} ',
+        );
+      }
     } on MyError catch (e) {
       stdout.writeln(ConsoleColors.red(e.toString(), color));
     } catch (e, st) {
