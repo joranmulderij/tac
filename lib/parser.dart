@@ -121,13 +121,6 @@ Parser<Token<LinesExpr>> _createParser() {
   builder.primitive(emptyList);
   builder.primitive(emptyVector);
   builder.primitive(
-    block<BlockedBlockExpr>(
-      Tokens.openTripleBrace,
-      Tokens.closeTripleBrace,
-      BlockedBlockExpr.new,
-    ),
-  );
-  builder.primitive(
     block<ProtectedBlockExpr>(
       Tokens.openDoubleBrace,
       Tokens.closeDoubleBrace,
@@ -478,9 +471,6 @@ class Tokens {
 
   static final openDoubleBrace = string('{{').trimNoNewline();
   static final closeDoubleBrace = string('}}').trimNoNewline();
-
-  static final openTripleBrace = string('{{{').trimNoNewline();
-  static final closeTripleBrace = string('}}}').trimNoNewline();
 
   static final openBracket = char('[').trimNoNewline();
   static final closeBracket = char(']').trimNoNewline();
