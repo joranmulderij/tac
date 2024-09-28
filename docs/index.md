@@ -53,6 +53,29 @@ Numbers with units can be multiplied. Then the units are handled automatically.
 2[m s-1]
 ```
 
+## Variables
+
+Variables can be defined and used in calculations.
+
+```tac
+> a = 1
+1
+> b = 2
+2
+> a + b
+3
+```
+
+## Functions
+
+Functions can be defined and used in calculations.
+
+```python
+> f(x) = x^2
+> f(2)
+4
+```
+
 ## Types
 
 ### Number
