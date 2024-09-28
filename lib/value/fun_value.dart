@@ -47,7 +47,7 @@ class FunValue extends Value {
       ]);
 
   @override
-  String toExpr() => '(${args.join(',')}) -> ${body.toExpr()}';
+  String toExpr() => '(${args.join(',')}) => ${body.toExpr()}';
 }
 
 class MethodValue extends FunValue {

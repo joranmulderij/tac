@@ -153,7 +153,22 @@ class OperatorExpr extends Expr {
       Operator.and => _locicalAnd(await leftValue(), await rightValue()),
       Operator.or => _locicalOr(await leftValue(), await rightValue()),
       Operator.getProperty => _getProperty(await leftValue(), right),
+      Operator.unitConvert =>
+        _unitConvert(state, await leftValue(), await rightValue()),
     };
+  }
+
+  Future<Value> _unitConvert(Tac state, Value left, Value right) async {
+    if (left is NumberValue) {
+      if (right case NumberValue(unitSet: final unitSet2)) {
+        final number = left.convertToUnit(unitSet2);
+        return NumberValue(number, unitSet2);
+      } else {
+        throw MyError.unexpectedType('number', right.type);
+      }
+    } else {
+      throw MyError.unexpectedType('number', left.type);
+    }
   }
 
   Value _locicalOr(Value left, Value right) {
@@ -437,10 +452,11 @@ enum Operator {
   ne('!='),
   lte('<='),
   gte('>='),
-  funCreate('->'),
+  funCreate('=>'),
   and('&&'),
   or('||'),
-  getProperty('.');
+  getProperty('.'),
+  unitConvert('->');
 
   const Operator(this.symbol);
 
@@ -832,31 +848,4 @@ class VectorExpr extends Expr {
 
   @override
   String toExpr() => '<${expr?.toExpr() ?? ''}>';
-}
-
-class UnitConvertExpr extends Expr {
-  UnitConvertExpr(this.expr, this.unitSet);
-  final Expr expr;
-  final UnitSet unitSet;
-
-  @override
-  Future<Value> run(Tac state) async {
-    final value = await expr.run(state);
-    switch (value) {
-      case NumberValue():
-        return NumberValue(value.convertToUnit(unitSet), unitSet);
-      default:
-        throw MyError.unexpectedType('number', value.type);
-    }
-  }
-
-  @override
-  AstTree toTree() => AstTree(
-        'unitConvert',
-        {'unitSet': unitSet.toString()},
-        [expr.toTree()],
-      );
-
-  @override
-  String toExpr() => '${expr.toExpr()}=>[$unitSet]';
 }

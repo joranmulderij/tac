@@ -73,7 +73,7 @@ void main() {
       );
       expect(await run('load "test/temp.tac"'), '"Hello World!"');
       expect(
-        await run('save("test/temp.tac", x->x^2)'),
+        await run('save("test/temp.tac", x=>x^2)'),
         'fun(x)',
       );
       expect(await run('load "test/temp.tac"'), 'fun(x)');

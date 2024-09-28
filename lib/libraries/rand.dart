@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:tac/libraries/libraries.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
@@ -7,34 +8,38 @@ import 'package:tac/value/value.dart';
 
 final _randomObject = Random();
 
-final randLibrary = {
-  'randint': DartFunctionValue.from1Param(
-    (state, arg) async {
-      if (arg case NumberValue(:final value)) {
-        if (value.isInteger) {
-          if (value.toInt() <= 0) {
-            throw MyError.negativeValue();
+final randLibrary = Library(
+  name: 'rand',
+  displayName: 'Random Library',
+  definitions: {
+    'randint': DartFunctionValue.from1Param(
+      (state, arg) async {
+        if (arg case NumberValue(:final value)) {
+          if (value.isInteger) {
+            if (value.toInt() <= 0) {
+              throw MyError.negativeValue();
+            }
+            return NumberValue(
+              Number.fromInt(_randomObject.nextInt(value.toInt())),
+              UnitSet.empty,
+            );
+          } else {
+            throw MyError.unexpectedType('integer', 'float');
           }
-          return NumberValue(
-            Number.fromInt(_randomObject.nextInt(value.toInt())),
-            UnitSet.empty,
-          );
         } else {
-          throw MyError.unexpectedType('integer', 'float');
+          throw MyError.unexpectedType('number', arg.type);
         }
-      } else {
-        throw MyError.unexpectedType('number', arg.type);
-      }
-    },
-    'max',
-  ),
-  'rand': DartFunctionValue.from0Params(
-    (state) => NumberValue(
-      Number.fromDouble(_randomObject.nextDouble()),
-      UnitSet.empty,
+      },
+      'max',
     ),
-  ),
-};
+    'rand': DartFunctionValue.from0Params(
+      (state) => NumberValue(
+        Number.fromDouble(_randomObject.nextDouble()),
+        UnitSet.empty,
+      ),
+    ),
+  },
+);
 
 // class MyRandomObject extends DartObject {
 //   const MyRandomObject(this.random, this.seed);

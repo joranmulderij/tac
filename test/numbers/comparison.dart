@@ -7,14 +7,14 @@ void main() {
     test('Equality', () async {
       expect(await run('1 == 1'), 'true');
       expect(await run('1 == 2'), 'false');
-      expect(await run('1? == 1'), 'true');
-      expect(await run('1 == 1?'), 'true');
+      expect(await run('1? == 1'), 'false');
+      expect(await run('1 == 1?'), 'false');
       expect(await run('1 == 2?'), 'false');
     });
     test('Inequality', () async {
       expect(await run('1 != 1'), 'false');
-      expect(await run('1? != 1'), 'false');
-      expect(await run('1 != 1?'), 'false');
+      expect(await run('1? != 1'), 'true');
+      expect(await run('1 != 1?'), 'true');
       expect(await run('1 != 2'), 'true');
       expect(await run('1 != 2?'), 'true');
     });

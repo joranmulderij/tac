@@ -1,5 +1,6 @@
 import 'package:ansicolor/ansicolor.dart';
 import 'package:dart_console/dart_console.dart';
+import 'package:tac/libraries/libraries.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
@@ -7,9 +8,13 @@ import 'package:tac/value/value.dart';
 
 final _bluePen = AnsiPen()..blue();
 
-final plotLibrary = {
-  'plot': _splot,
-};
+final plotLibrary = Library(
+  name: 'plot',
+  displayName: 'Plot Library',
+  definitions: {
+    'plot': _splot,
+  },
+);
 
 // - Create matrix of bool values
 // - For each x value, evaluate the function
@@ -115,4 +120,5 @@ final DartFunctionValue _splot = DartFunctionValue.from1Param(
     return arg;
   },
   'function',
+  helpText: 'Plot a function',
 );

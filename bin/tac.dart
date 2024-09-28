@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:io' show exit, stdout;
 
 import 'package:args/args.dart';
-import 'package:dart_console/dart_console.dart';
 import 'package:hotreloader/hotreloader.dart';
+import 'package:tac/libraries/libraries.dart';
 import 'package:tac/tac.dart';
-import 'package:tac/utils/console.dart';
+import 'package:tac/utils/console_colors.dart';
 import 'package:tac/utils/errors.dart';
+import 'package:tac/utils/my_console.dart';
 
 void main(List<String> args) async {
   final argsParser = getArgsParser();
@@ -69,10 +70,18 @@ Future<void> runRepl({
   required bool printAst,
   HotReloader? reloader,
 }) async {
-  final console = Console.scrolling(recordBlanks: false);
+  final console = MyConsole();
 
+  console.writeCentered(ConsoleColors.blue('████████╗ █████╗  ██████╗', color));
+  console.writeCentered(ConsoleColors.blue('╚══██╔══╝██╔══██╗██╔════╝', color));
+  console.writeCentered(ConsoleColors.blue('   ██║   ███████║██║     ', color));
+  console.writeCentered(ConsoleColors.blue('   ██║   ██╔══██║██║     ', color));
+  console.writeCentered(ConsoleColors.blue('   ██║   ██║  ██║╚██████╗', color));
+  console.writeCentered(ConsoleColors.blue('   ╚═╝   ╚═╝  ╚═╝ ╚═════╝', color));
+  console.writeLine('TAC Advaned Calculator $appVersion');
   console.writeLine('Copyright (c) 2024 Joran Mulderij');
-  console.writeLine('TAC $appVersion');
+  console.writeLine('Type .help for help');
+
   final tac = Tac(
     color: color,
     printAst: printAst,
@@ -80,7 +89,7 @@ Future<void> runRepl({
   );
   // String? lastInput;
   while (true) {
-    console.write('> ');
+    console.write(ConsoleColors.gray('> ', color));
     final input = console.readLine(cancelOnBreak: true);
     if (input == null) exit(0);
     if (input.isEmpty) continue;
@@ -88,8 +97,30 @@ Future<void> runRepl({
     if (RegExp(r'^ *$').hasMatch(input) || RegExp(r'^ *; *$').hasMatch(input)) {
       continue;
     }
-    if (input.trim() == 'exit') {
+    if (input.trim() == '.exit') {
       break;
+    } else if (input.trim() == '.clear') {
+      console.clear();
+      continue;
+    } else if (input.trim() == '.help') {
+      console.writeLine('  .exit      - Exit the program');
+      console.writeLine('  .clear     - Clear the screen');
+      console.writeLine('  .help core - Show help for core functions');
+      console.writeLine('  .help math - Show help for math functions');
+      console.writeLine('  .help plot - Show help for plot functions');
+      continue;
+    } else if (input.trim().startsWith('.help')) {
+      final match = RegExp(r' *\.help +(\w+) *').firstMatch(input);
+      if (match != null) {
+        final name = match.group(1);
+        if (Library.builtin.containsKey(name)) {
+          final library = Library.builtin[name]!;
+          console.writeLine(library.helpText);
+        } else {
+          console.writeLine('Unknown library: $name');
+        }
+      }
+      continue;
     }
     // if (input.isEmpty && lastInput != null) {
     //   input = lastInput;

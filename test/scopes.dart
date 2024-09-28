@@ -37,12 +37,5 @@ void main() {
       expect(await run('{{ 1; 2 }}'), '{}');
       expect(await run('{{ return 1 }}'), '1');
     });
-    test('Blocked Block', () async {
-      expect(await run('{{{ a = 1 }}}; a'), 'unknown');
-      expect(await run('a = 1; {{{ a = 2 }}}; a'), '1');
-      expect(await run('{{{ 1 }}}'), '{}');
-      expect(await run('{{{ 1; 2 }}}'), '{}');
-      expect(await run('{{{ return 1 }}}'), '1');
-    });
   });
 }

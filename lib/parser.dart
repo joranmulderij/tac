@@ -63,12 +63,16 @@ Parser<Token<LinesExpr>> _createParser() {
           (token.value[2] as UnitSet?) ?? UnitSet.empty,
         ),
       );
-  final variable =
-      ((letter() | char('_')) & (letter() | char('_') | digit()).star())
-          .flatten()
-          .token()
-          .trimNoNewline()
-          .mapToken((token) => VariableExpr(token.value));
+  final variableLetter = [
+    letter(),
+    char('_'),
+    char('π'),
+  ].toChoiceParser();
+  final variable = (variableLetter & (variableLetter | digit()).star())
+      .flatten()
+      .token()
+      .trimNoNewline()
+      .mapToken((token) => VariableExpr(token.value));
   final string1 = (char('"') & any().starLazy(char('"')).flatten() & char('"'))
       .token()
       .trimNoNewline()
@@ -287,17 +291,9 @@ Parser<Token<LinesExpr>> _createParser() {
       ),
     );
 
-  builder.group().postfix(
-        [Tokens.unitConvert, unitSet].toSequenceParser().token(),
-        (left, op) => Token(
-          UnitConvertExpr(
-            left.value,
-            op.value[1] as UnitSet,
-          ),
-          left.buffer,
-          left.start,
-          op.stop,
-        ),
+  builder.group().left(
+        Tokens.unitConvert,
+        OperatorExpr.fromToken(Operator.unitConvert),
       );
 
   // ..prefix(
@@ -478,8 +474,8 @@ class Tokens {
   static final semicolon = char(';').trimNoNewline();
   static final colon = char(':').trimNoNewline();
 
-  static final funCreate = string('->').trimNoNewline();
-  static final unitConvert = string('=>').trimNoNewline();
+  static final funCreate = string('=>').trimNoNewline();
+  static final unitConvert = string('->').trimNoNewline();
 
   static final spread = string('...').trimNoNewline();
 

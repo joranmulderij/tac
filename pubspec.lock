@@ -402,6 +402,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  termansi:
+    dependency: transitive
+    description:
+      name: termansi
+      sha256: "63a4e55c35a3c18a752e582a8a434915b9169098309f4ab7a41cbd1d5a2e4e05"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
+  termlib:
+    dependency: "direct main"
+    description:
+      name: termlib
+      sha256: "31da65eb23bffec980c98bb76d1fb31680d59f173748ec1121e1ac503532d09d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0"
+  termparser:
+    dependency: "direct main"
+    description:
+      name: termparser
+      sha256: "6c8803bbe481a37f10179a153c7a0ddae9f168fa99d2446096d88b0ccfd6a20f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
   test:
     dependency: "direct dev"
     description:
@@ -491,7 +515,7 @@ packages:
     source: hosted
     version: "1.2.1"
   win32:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       name: win32
       sha256: "68d1e89a91ed61ad9c370f9f8b6effed9ae5e0ede22a270bdfa6daf79fc2290a"

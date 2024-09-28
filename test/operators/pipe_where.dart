@@ -14,7 +14,7 @@ void main() {
     });
     test('Function pipe', () async {
       expect(
-        await run('f(x) = sqrt(x) % 1 == 0; 100 | _+1 |? f'),
+        await run('f(x) = sqrt(x) % 1 == 0?; 100 | _+1 |? f'),
         '[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]',
       );
     });

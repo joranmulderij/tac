@@ -178,22 +178,22 @@ class NumberValue extends Value implements ValueWithUnit {
     }
     if (value is FloatNumber) {
       final num = value.toNum().toDouble();
-      final postfix = ConsoleColors.green('?', color);
+      final postfix = ConsoleColors.blue('?', color);
       if (num.isNegative) {
-        final numString = ConsoleColors.green((-num).toString(), color);
-        final negSign = ConsoleColors.green('-', color);
+        final numString = ConsoleColors.blue((-num).toString(), color);
+        final negSign = ConsoleColors.blue('-', color);
         return '$negSign$numString$postfix$unitString';
       } else {
-        final numString = ConsoleColors.green(num.toString(), color);
+        final numString = ConsoleColors.blue(num.toString(), color);
         return '$numString$postfix$unitString';
       }
     } else if (value.isInteger) {
-      final valueString = ConsoleColors.green(value.toString(), color);
+      final valueString = ConsoleColors.blue(value.toString(), color);
       return '$valueString$unitString';
     } else {
-      final valueString = ConsoleColors.green(value.toString(), color);
+      final valueString = ConsoleColors.blue(value.toString(), color);
       final valueNumString =
-          ConsoleColors.green(value.toNum().toString(), color);
+          ConsoleColors.blue(value.toNum().toString(), color);
       if (valueString.length > 20) {
         return '$valueNumString$unitString';
       }

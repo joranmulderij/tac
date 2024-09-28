@@ -4,7 +4,7 @@ import 'package:tac/ast/ast.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/tac.dart';
 import 'package:tac/units/unitset.dart';
-import 'package:tac/utils/console.dart';
+import 'package:tac/utils/console_colors.dart';
 import 'package:tac/utils/errors.dart';
 
 part 'bool_value.dart';

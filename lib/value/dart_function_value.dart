@@ -1,11 +1,12 @@
 part of 'value.dart';
 
 class DartFunctionValue extends Value {
-  const DartFunctionValue(this.function, this.args);
+  const DartFunctionValue(this.function, this.args, [this.helpText]);
 
   factory DartFunctionValue.from0Params(
-    Value Function(Tac state) function,
-  ) =>
+    Value Function(Tac state) function, {
+    String? helpText,
+  }) =>
       DartFunctionValue(
         (state, args) async {
           if (args.isNotEmpty) {
@@ -14,12 +15,14 @@ class DartFunctionValue extends Value {
           return function(state);
         },
         const [],
+        helpText,
       );
 
   factory DartFunctionValue.from1Param(
     Future<Value> Function(Tac state, Value arg) function,
-    String arg,
-  ) =>
+    String arg, {
+    String? helpText,
+  }) =>
       DartFunctionValue(
         (state, args) async {
           if (args.length != 1) {
@@ -28,13 +31,15 @@ class DartFunctionValue extends Value {
           return function(state, args[0]);
         },
         [arg],
+        helpText,
       );
 
   factory DartFunctionValue.from2Params(
     Future<Value> Function(Tac state, Value arg1, Value arg2) function,
     String arg1,
-    String arg2,
-  ) =>
+    String arg2, {
+    String? helpText,
+  }) =>
       DartFunctionValue(
         (state, args) async {
           if (args.length != 2) {
@@ -43,10 +48,12 @@ class DartFunctionValue extends Value {
           return function(state, args[0], args[1]);
         },
         [arg1, arg2],
+        helpText,
       );
 
   final Future<Value> Function(Tac state, List<Value> args) function;
   final List<String> args;
+  final String? helpText;
 
   @override
   Future<Value> call(Tac state, List<Value> args) async =>

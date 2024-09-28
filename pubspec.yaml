@@ -23,6 +23,9 @@ dependencies:
     git:
       url: https://github.com/joranmulderij/dart-petitparser
   rational: ^2.2.2
+  termlib: ^0.4.0
+  termparser: ^0.3.0
+  win32: ^5.5.4
 
 dev_dependencies:
   lints: ^2.0.0

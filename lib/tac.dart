@@ -1,10 +1,7 @@
 import 'package:console/console.dart' show createTree;
-import 'package:tac/libraries/core.dart';
-import 'package:tac/libraries/math.dart';
-import 'package:tac/libraries/plot.dart';
-import 'package:tac/libraries/units.dart';
+import 'package:tac/libraries/libraries.dart';
 import 'package:tac/parser.dart';
-import 'package:tac/utils/console.dart';
+import 'package:tac/utils/console_colors.dart';
 import 'package:tac/value/value.dart';
 
 /// Format: `v{major}.{minor}.{patch}`
@@ -108,10 +105,9 @@ class Tac {
 class Scope {
   Scope(this.protectionLevel) {
     if (protectionLevel == ScopeProtectionLevel.blocked) {
-      variables.addAll(coreLibrary);
-      variables.addAll(mathLibrary);
-      variables.addAll(plotLibrary);
-      variables.addAll(unitsLibrary);
+      for (final library in Library.builtin.values) {
+        variables.addAll(library.definitions);
+      }
     }
   }
 

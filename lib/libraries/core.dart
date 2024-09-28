@@ -1,29 +1,31 @@
 import 'dart:io';
 
 import 'package:tac/ast/ast.dart';
-import 'package:tac/libraries/math.dart';
-import 'package:tac/libraries/rand.dart';
-import 'package:tac/libraries/units.dart';
+import 'package:tac/libraries/libraries.dart';
 import 'package:tac/parser.dart';
 import 'package:tac/tac.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
-final coreLibrary = {
-  'true': const BoolValue(true),
-  'false': const BoolValue(false),
-  'print': _print,
-  'type': _type,
-  'length': _length,
-  'string': _string,
-  'expr': _expr,
-  'save': _save,
-  'import': _import,
-  'load': _load,
-  'return': _return,
-  'eval': _eval,
-  'exit': _exit,
-};
+final coreLibrary = Library(
+  name: 'core',
+  displayName: 'Core Library',
+  definitions: {
+    'true': const BoolValue(true),
+    'false': const BoolValue(false),
+    'print': _print,
+    'type': _type,
+    'length': _length,
+    'string': _string,
+    'expr': _expr,
+    'save': _save,
+    'import': _import,
+    'load': _load,
+    'return': _return,
+    'eval': _eval,
+    'exit': _exit,
+  },
+);
 
 // Core functions
 
@@ -115,17 +117,16 @@ final _load = DartFunctionValue.from1Param(
 
 Future<Value> _loadLibrary(Tac state, Value arg) async {
   if (arg case StringValue(value: final path)) {
-    final library = switch (null) {
-      _ when path.startsWith('tac:') => switch (path.substring(4)) {
-          'core' => ObjectValue(coreLibrary),
-          'math' => ObjectValue(mathLibrary),
-          'rand' => ObjectValue(randLibrary),
-          'units' => ObjectValue(unitsLibrary),
-          _ => throw MyError.unknownLibrary(path),
-        },
-      _ => await _loadLibraryFromPath(state, path),
-    };
-    return library;
+    if (path.startsWith('tac:')) {
+      final name = path.substring(4);
+      final library = Library.builtin[name];
+      if (library == null) {
+        throw MyError.unknownLibrary(name);
+      }
+      return ObjectValue(library.definitions);
+    } else {
+      return _loadLibraryFromPath(state, path);
+    }
   } else {
     throw MyError.unexpectedType('string', arg.type);
   }

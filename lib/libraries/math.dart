@@ -1,33 +1,39 @@
 import 'dart:math' as math;
 
+import 'package:tac/libraries/libraries.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
 //TODO: check for values that don't need to be computed, for example sin(0)
-final mathLibrary = {
-  'sin': _mathFunction(math.sin),
-  'cos': _mathFunction(math.cos),
-  'tan': _mathFunction(math.tan),
-  'asin': _mathFunction(math.asin),
-  'acos': _mathFunction(math.acos),
-  'atan': _mathFunction(math.atan),
-  'sqrt': _mathFunction(math.sqrt),
-  'log': _mathFunction(math.log),
-  'exp': _mathFunction(math.exp),
-  'pi': const NumberValue(FloatNumber(math.pi), UnitSet.empty),
-  'e': const NumberValue(FloatNumber(math.e), UnitSet.empty),
-  'i': VectorValue(
-    [NumberValue.fromNum(1), NumberValue.fromNum(0), NumberValue.fromNum(0)],
-  ),
-  'j': VectorValue(
-    [NumberValue.fromNum(0), NumberValue.fromNum(1), NumberValue.fromNum(0)],
-  ),
-  'k': VectorValue(
-    [NumberValue.fromNum(0), NumberValue.fromNum(0), NumberValue.fromNum(1)],
-  ),
-};
+final mathLibrary = Library(
+  name: 'math',
+  displayName: 'Math Library',
+  definitions: {
+    'sin': _mathFunction(math.sin),
+    'cos': _mathFunction(math.cos),
+    'tan': _mathFunction(math.tan),
+    'asin': _mathFunction(math.asin),
+    'acos': _mathFunction(math.acos),
+    'atan': _mathFunction(math.atan),
+    'sqrt': _mathFunction(math.sqrt),
+    'log': _mathFunction(math.log),
+    'exp': _mathFunction(math.exp),
+    'pi': const NumberValue(FloatNumber(math.pi), UnitSet.empty),
+    'π': const NumberValue(FloatNumber(math.pi), UnitSet.empty),
+    'e': const NumberValue(FloatNumber(math.e), UnitSet.empty),
+    'i': VectorValue(
+      [NumberValue.fromNum(1), NumberValue.fromNum(0), NumberValue.fromNum(0)],
+    ),
+    'j': VectorValue(
+      [NumberValue.fromNum(0), NumberValue.fromNum(1), NumberValue.fromNum(0)],
+    ),
+    'k': VectorValue(
+      [NumberValue.fromNum(0), NumberValue.fromNum(0), NumberValue.fromNum(1)],
+    ),
+  },
+);
 
 DartFunctionValue _mathFunction(num Function(num) f) {
   return DartFunctionValue.from1Param(

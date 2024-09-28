@@ -1,13 +1,24 @@
+import 'package:tac/libraries/libraries.dart';
+import 'package:tac/number/number.dart';
 import 'package:tac/units/unit.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
 import 'package:tac/value/value.dart';
 
-final unitsLibrary = {
-  'siUnit': _siUnit,
-  'baseUnit': _baseUnit,
-  // TODO: explainUnit, explainDimension
-};
+final unitsLibrary = Library(
+  name: 'units',
+  displayName: 'Units Library',
+  definitions: {
+    'siUnit': _siUnit,
+    'baseUnit': _baseUnit,
+    for (final unit in Unit.values) ...{
+      unit.name: NumberValue(Number.one, UnitSet({unit: 1})),
+      for (final name in unit.otherNames)
+        name: NumberValue(Number.one, UnitSet({unit: 1})),
+    },
+    // TODO: explainUnit, explainDimension
+  },
+);
 
 final _siUnitMap = {
   Unit.mass: const UnitSet({Unit.kiloGram: 1}),
