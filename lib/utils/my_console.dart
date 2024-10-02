@@ -9,21 +9,21 @@ import 'package:termlib/termlib.dart';
 
 class MyConsole {
   MyConsole() {
-    termLib.setTerminalTitle('TAC Advanced Calculator');
+    _termLib.setTerminalTitle('TAC Advanced Calculator');
+    _console.rawMode = false;
   }
 
-  final Console console = Console();
-  final TermLib termLib = TermLib();
-  final ScrollbackBuffer _scrollbackBuffer =
-      ScrollbackBuffer(recordBlanks: false);
+  final Console _console = Console();
+  final TermLib _termLib = TermLib();
+  final List<ReplEntry> _replEntries = [];
+  int _activeReplEntryIndex = -1; // Increments to 0 on first readLine
+  ReplEntry get _activeReplEntry => _replEntries[_activeReplEntryIndex];
 
-  void writeCentered(String text) {
-    final padding = ' ' * ((console.windowWidth - text.displayWidth) ~/ 2);
-    console.write('$padding$text\n');
-  }
+  String get _currentReadingBuffer => _replEntries[_activeReplEntryIndex].input;
+  set _currentReadingBuffer(String value) =>
+      _replEntries[_activeReplEntryIndex].input = value;
 
   Coordinate? get cursorPosition {
-    console.rawMode = true;
     stdout.write(ansiDeviceStatusReportCursorPosition);
     // returns a Cursor Position Report result in the form <ESC>[24;80R
     // which we have to parse apart, unfortunately
@@ -31,7 +31,7 @@ class MyConsole {
     var i = 0;
 
     // avoid infinite loop if we're getting a bad result
-    while (i < 16) {
+    while (i < 32) {
       final readByte = stdin.readByteSync();
 
       if (readByte == -1) break; // headless console may not report back
@@ -41,7 +41,6 @@ class MyConsole {
       if (result.endsWith('R')) break;
       i++;
     }
-    console.rawMode = false;
 
     if (result.isEmpty) {
       return null;
@@ -49,6 +48,8 @@ class MyConsole {
 
     if (result.contains('\x1b')) {
       result = result.substring(result.indexOf('\x1b'));
+    } else {
+      throw Exception();
     }
 
     result = result.substring(2, result.length - 1);
@@ -72,23 +73,23 @@ class MyConsole {
     bool cancelOnEOF = false,
     void Function(String text, Key lastPressed)? callback,
   }) {
-    var buffer = '';
+    _activeReplEntryIndex++;
+    _replEntries.add(ReplEntry(''));
     var index = 0; // cursor position relative to buffer, not screen
 
     final screenRow = cursorPosition!.row;
     final screenColOffset = cursorPosition!.col;
 
-    final bufferMaxLength = console.windowWidth - screenColOffset - 3;
+    final bufferMaxLength = _console.windowWidth - screenColOffset - 3;
 
     while (true) {
-      final key = console.readKey();
+      final key = _console.readKey();
 
       if (key.isControl) {
         switch (key.controlChar) {
           case ControlCharacter.enter:
-            _scrollbackBuffer.add(buffer);
-            console.writeLine();
-            return buffer;
+            _console.writeLine();
+            return _currentReadingBuffer;
           case ControlCharacter.ctrlC:
             if (cancelOnBreak) return null;
           case ControlCharacter.escape:
@@ -96,61 +97,77 @@ class MyConsole {
           case ControlCharacter.backspace:
           case ControlCharacter.ctrlH:
             if (index > 0) {
-              buffer = buffer.substring(0, index - 1) + buffer.substring(index);
+              _currentReadingBuffer =
+                  _currentReadingBuffer.substring(0, index - 1) +
+                      _currentReadingBuffer.substring(index);
               index--;
             }
           case ControlCharacter.ctrlU:
-            buffer = buffer.substring(index, buffer.length);
+            _currentReadingBuffer = _currentReadingBuffer.substring(
+              index,
+              _currentReadingBuffer.length,
+            );
             index = 0;
           case ControlCharacter.delete:
           case ControlCharacter.ctrlD:
-            if (index < buffer.length) {
-              buffer = buffer.substring(0, index) + buffer.substring(index + 1);
+            if (index < _currentReadingBuffer.length) {
+              _currentReadingBuffer =
+                  _currentReadingBuffer.substring(0, index) +
+                      _currentReadingBuffer.substring(index + 1);
             } else if (cancelOnEOF) {
               return null;
             }
           case ControlCharacter.ctrlK:
-            buffer = buffer.substring(0, index);
+            _currentReadingBuffer = _currentReadingBuffer.substring(0, index);
           case ControlCharacter.arrowLeft:
           case ControlCharacter.ctrlB:
             index = index > 0 ? index - 1 : index;
-          case ControlCharacter.arrowUp:
-            buffer = _scrollbackBuffer.up(buffer);
-            index = buffer.length;
-          case ControlCharacter.arrowDown:
-            final temp = _scrollbackBuffer.down();
-            if (temp != null) {
-              buffer = temp;
-              index = buffer.length;
-            }
+          // case ControlCharacter.arrowUp:
+          //   _activeReplEntryIndex--;
+          //   if (_activeReplEntryIndex < 0) {
+          //     _activeReplEntryIndex = 0;
+          //     continue;
+          //   }
+          //   screenRow -= _activeReplEntry.lines;
+          //   _termLib.moveUp(_activeReplEntry.lines);
+          // case ControlCharacter.arrowDown:
+          //   _console.write(_activeReplEntry.lines);
           case ControlCharacter.arrowRight:
           case ControlCharacter.ctrlF:
-            index = index < buffer.length ? index + 1 : index;
+            index = index < _currentReadingBuffer.length ? index + 1 : index;
           case ControlCharacter.wordLeft:
             if (index > 0) {
-              final bufferLeftOfCursor = buffer.substring(0, index - 1);
+              final bufferLeftOfCursor =
+                  _currentReadingBuffer.substring(0, index - 1);
               final lastSpace = bufferLeftOfCursor.lastIndexOf(' ');
               index = lastSpace != -1 ? lastSpace + 1 : 0;
             }
           case ControlCharacter.wordRight:
-            if (index < buffer.length) {
-              final bufferRightOfCursor = buffer.substring(index + 1);
+            if (index < _currentReadingBuffer.length) {
+              final bufferRightOfCursor =
+                  _currentReadingBuffer.substring(index + 1);
               final nextSpace = bufferRightOfCursor.indexOf(' ');
               index = nextSpace != -1
-                  ? math.min(index + nextSpace + 2, buffer.length)
-                  : buffer.length;
+                  ? math.min(
+                      index + nextSpace + 2,
+                      _currentReadingBuffer.length,
+                    )
+                  : _currentReadingBuffer.length;
             }
           case ControlCharacter.home:
           case ControlCharacter.ctrlA:
             index = 0;
           case ControlCharacter.end:
           case ControlCharacter.ctrlE:
-            index = buffer.length;
+            index = _currentReadingBuffer.length;
           case ControlCharacter.tab:
             for (final entry in tabMappings) {
-              if (buffer.endsWith(entry.$1)) {
-                buffer = buffer.substring(0, buffer.length - entry.$1.length);
-                buffer += entry.$2;
+              if (_currentReadingBuffer.endsWith(entry.$1)) {
+                _currentReadingBuffer = _currentReadingBuffer.substring(
+                  0,
+                  _currentReadingBuffer.length - entry.$1.length,
+                );
+                _currentReadingBuffer += entry.$2;
                 index += entry.$2.length - entry.$1.length;
                 break;
               }
@@ -160,36 +177,72 @@ class MyConsole {
             break;
         }
       } else {
-        if (buffer.length < bufferMaxLength) {
-          if (index == buffer.length) {
-            buffer += key.char;
+        if (_currentReadingBuffer.length < bufferMaxLength) {
+          if (index == _currentReadingBuffer.length) {
+            _currentReadingBuffer += key.char;
             index++;
           } else {
-            buffer =
-                buffer.substring(0, index) + key.char + buffer.substring(index);
+            _currentReadingBuffer = _currentReadingBuffer.substring(0, index) +
+                key.char +
+                _currentReadingBuffer.substring(index);
             index++;
           }
         }
       }
 
-      console.cursorPosition = Coordinate(screenRow, screenColOffset);
-      console.eraseCursorToEnd();
-      console.write(buffer); // allow for backspace condition
-      console.cursorPosition = Coordinate(screenRow, screenColOffset + index);
+      _console.cursorPosition = Coordinate(screenRow, screenColOffset);
+      _console.eraseCursorToEnd();
+      _console.write(_currentReadingBuffer); // allow for backspace condition
+      _console.cursorPosition = Coordinate(screenRow, screenColOffset + index);
 
-      if (callback != null) callback(buffer, key);
+      if (callback != null) callback(_currentReadingBuffer, key);
     }
   }
 
   void write(String text) {
-    console.write(text);
+    _console.write(text);
   }
 
   void writeLine([String text = '']) {
-    console.writeLine(text);
+    _console.writeLine(text);
+    _replEntries[_activeReplEntryIndex].lines++;
   }
 
   void clear() {
-    console.clearScreen();
+    // TODO
+    // _replEntries.clear();
+    // _replEntries.add(ReplEntry('', []));
   }
 }
+
+class ReplEntry {
+  ReplEntry(this.input);
+
+  String input;
+  int lines = 1;
+}
+
+// abstract class Renderable {
+//   int numberOfLines(int width);
+
+//   List<String> lines(int width);
+// }
+
+// class RenderableString implements Renderable {
+//   RenderableString(this.text);
+
+//   final String text;
+
+//   @override
+//   int numberOfLines(int width) {
+//     return text.split('\n').fold<int>(0, (prev, line) {
+//       return prev + (line.length / width).ceil();
+//     });
+//   }
+
+//   @override
+//   List<String> lines(int width) {
+//     // TODO: handle long lines
+//     return text.split('\n').where((line) => line.isNotEmpty).toList();
+//   }
+// }

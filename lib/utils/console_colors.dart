@@ -16,4 +16,6 @@ abstract class ConsoleColors {
   static String gray(String s, bool color) => color ? _gray(s) : s;
   static String purple(String s, bool color) => color ? _purple(s) : s;
   static String blue(String s, bool color) => color ? _blue(s) : s;
+
+  static (int, int, int) purpleRGB = (92, 12, 108);
 }

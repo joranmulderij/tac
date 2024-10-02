@@ -65,6 +65,26 @@ ArgParser getArgsParser() {
   return argsParser;
 }
 
+// void printLogo(MyConsole console) {
+//   final logo = [
+//     '                         ',
+//     '████████╗ █████╗  ██████╗',
+//     '╚══██╔══╝██╔══██╗██╔════╝',
+//     '   ██║   ███████║██║     ',
+//     '   ██║   ██╔══██║██║     ',
+//     '   ██║   ██║  ██║╚██████╗',
+//     '   ╚═╝   ╚═╝  ╚═╝ ╚═════╝',
+//     '                         ',
+//   ];
+
+//   final paddingLeft = (console.width - 25) ~/ 2;
+
+//   for (var i = 0; i < logo.length; i++) {
+//     final line = ' ' * paddingLeft + logo[i];
+//     console.writeLine(line);
+//   }
+// }
+
 Future<void> runRepl({
   required bool color,
   required bool printAst,
@@ -72,12 +92,7 @@ Future<void> runRepl({
 }) async {
   final console = MyConsole();
 
-  console.writeCentered(ConsoleColors.blue('████████╗ █████╗  ██████╗', color));
-  console.writeCentered(ConsoleColors.blue('╚══██╔══╝██╔══██╗██╔════╝', color));
-  console.writeCentered(ConsoleColors.blue('   ██║   ███████║██║     ', color));
-  console.writeCentered(ConsoleColors.blue('   ██║   ██╔══██║██║     ', color));
-  console.writeCentered(ConsoleColors.blue('   ██║   ██║  ██║╚██████╗', color));
-  console.writeCentered(ConsoleColors.blue('   ╚═╝   ╚═╝  ╚═╝ ╚═════╝', color));
+  // printLogo(console);
   console.writeLine('TAC Advaned Calculator $appVersion');
   console.writeLine('Copyright (c) 2024 Joran Mulderij');
   console.writeLine('Type .help for help');
@@ -89,16 +104,17 @@ Future<void> runRepl({
   );
   // String? lastInput;
   while (true) {
-    console.write(ConsoleColors.gray('> ', color));
+    console.write('> ');
     final input = console.readLine(cancelOnBreak: true);
     if (input == null) exit(0);
+
     if (input.isEmpty) continue;
     await reloader?.reloadCode();
     if (RegExp(r'^ *$').hasMatch(input) || RegExp(r'^ *; *$').hasMatch(input)) {
       continue;
     }
     if (input.trim() == '.exit') {
-      break;
+      exit(0);
     } else if (input.trim() == '.clear') {
       console.clear();
       continue;
@@ -133,8 +149,8 @@ Future<void> runRepl({
     try {
       final value = await tac.run(input);
       if (!input.trim().endsWith(';')) {
-        tac.print(
-          '  ${ConsoleColors.green('=', color)} ${value.toConsoleString(color)} ',
+        console.writeLine(
+          '  ${ConsoleColors.green('=', false)} ${value.toConsoleString(false)} ',
         );
       }
     } on MyError catch (e) {

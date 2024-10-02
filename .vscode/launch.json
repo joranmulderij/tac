@@ -9,7 +9,7 @@
             "request": "launch",
             "type": "dart",
             "program": "bin/tac.dart",
-            "console": "terminal",
+            "console": "externalTerminal",
             "args": ["--hot-reload"]
         },
         {
