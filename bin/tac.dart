@@ -65,26 +65,6 @@ ArgParser getArgsParser() {
   return argsParser;
 }
 
-// void printLogo(MyConsole console) {
-//   final logo = [
-//     '                         ',
-//     '████████╗ █████╗  ██████╗',
-//     '╚══██╔══╝██╔══██╗██╔════╝',
-//     '   ██║   ███████║██║     ',
-//     '   ██║   ██╔══██║██║     ',
-//     '   ██║   ██║  ██║╚██████╗',
-//     '   ╚═╝   ╚═╝  ╚═╝ ╚═════╝',
-//     '                         ',
-//   ];
-
-//   final paddingLeft = (console.width - 25) ~/ 2;
-
-//   for (var i = 0; i < logo.length; i++) {
-//     final line = ' ' * paddingLeft + logo[i];
-//     console.writeLine(line);
-//   }
-// }
-
 Future<void> runRepl({
   required bool color,
   required bool printAst,
@@ -92,7 +72,7 @@ Future<void> runRepl({
 }) async {
   final console = MyConsole();
 
-  // printLogo(console);
+  console.printLogo(console);
   console.writeLine('TAC Advaned Calculator $appVersion');
   console.writeLine('Copyright (c) 2024 Joran Mulderij');
   console.writeLine('Type .help for help');
@@ -104,7 +84,7 @@ Future<void> runRepl({
   );
   // String? lastInput;
   while (true) {
-    console.write('> ');
+    console.write('> ', 0);
     final input = console.readLine(cancelOnBreak: true);
     if (input == null) exit(0);
 
@@ -154,11 +134,11 @@ Future<void> runRepl({
         );
       }
     } on MyError catch (e) {
-      stdout.writeln(ConsoleColors.red(e.toString(), color));
+      console.writeLine(e.toString());
     } catch (e, st) {
-      stdout.writeln(ConsoleColors.red('Unexpected error:', color));
-      stdout.writeln(ConsoleColors.red(e.toString(), color));
-      stdout.writeln(ConsoleColors.red(st.toString(), color));
+      console.writeLine('Unexpected error:');
+      console.writeLine(e.toString());
+      console.writeLine(st.toString());
     }
   }
 }

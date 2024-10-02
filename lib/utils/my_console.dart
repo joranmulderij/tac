@@ -192,26 +192,65 @@ class MyConsole {
 
       _console.cursorPosition = Coordinate(screenRow, screenColOffset);
       _console.eraseCursorToEnd();
-      _console.write(_currentReadingBuffer); // allow for backspace condition
+      write(
+        _currentReadingBuffer,
+        screenColOffset,
+      ); // allow for backspace condition
       _console.cursorPosition = Coordinate(screenRow, screenColOffset + index);
 
       if (callback != null) callback(_currentReadingBuffer, key);
     }
   }
 
-  void write(String text) {
-    _console.write(text);
+  void write(String text, int col) {
+    final trailingSpaces = _console.windowWidth - text.length - col;
+    if (trailingSpaces < 0) {
+      throw Exception('Text too long to fit on screen');
+    }
+    final newText = text + ' ' * trailingSpaces;
+    for (var i = 0; i < newText.length; i++) {
+      const purpleRGB = (92, 12, 108);
+      final t = (i + col) / newText.length;
+      final r = (purpleRGB.$1 * t).round();
+      final g = (purpleRGB.$2 * t).round();
+      final b = (purpleRGB.$3 * t).round();
+      _console.write('\x1B[48;2;$r;$g;${b}m${newText[i]}\x1B[0m');
+    }
+    _termLib.moveLeft(trailingSpaces - 1);
   }
 
   void writeLine([String text = '']) {
-    _console.writeLine(text);
-    _replEntries[_activeReplEntryIndex].lines++;
+    write(text, 0);
+    _console.writeLine();
+    if (_activeReplEntryIndex != -1) {
+      _replEntries[_activeReplEntryIndex].lines++;
+    }
   }
 
   void clear() {
     // TODO
     // _replEntries.clear();
     // _replEntries.add(ReplEntry('', []));
+  }
+
+  void printLogo(MyConsole console) {
+    final logo = [
+      '                         ',
+      '████████╗ █████╗  ██████╗',
+      '╚══██╔══╝██╔══██╗██╔════╝',
+      '   ██║   ███████║██║     ',
+      '   ██║   ██╔══██║██║     ',
+      '   ██║   ██║  ██║╚██████╗',
+      '   ╚═╝   ╚═╝  ╚═╝ ╚═════╝',
+      '                         ',
+    ];
+
+    final paddingLeft = (_console.windowWidth - 25) ~/ 2;
+
+    for (var i = 0; i < logo.length; i++) {
+      final line = ' ' * paddingLeft + logo[i];
+      console.writeLine(line);
+    }
   }
 }
 
