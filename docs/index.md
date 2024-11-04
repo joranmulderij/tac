@@ -57,7 +57,7 @@ Numbers with units can be multiplied. Then the units are handled automatically.
 
 Variables can be defined and used in calculations.
 
-```tac
+```javascript
 > a = 1
 1
 > b = 2
@@ -68,9 +68,10 @@ Variables can be defined and used in calculations.
 
 ## Functions
 
-Functions can be defined and used in calculations.
+Functions can be defined in multiple ways. The `=>` operator is used to define a lambda function. Alternatively the `f(x) =` syntax can be used to define a function. This is an example of the language being math and engineering oriented.
 
-```python
+```javascript
+> f = (x) => x^2
 > f(x) = x^2
 > f(2)
 4
@@ -86,7 +87,7 @@ These are internally stored as a ratio of two arbirary size integers.
 Some numbers cannot be stored as a ratio, such as `sqrt(2)`. These are stored as floating point numbers.
 Floating point numbers are indicated by a question mark at the end of the number.
 
-```tac
+```javascript
 > 1
 1
 > 1.0

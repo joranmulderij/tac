@@ -4,4 +4,4 @@ plugins:
   - jekyll-seo-tag
 
 title: TAC Advanced Calculator
-description: An advanced command-line calculator.
+description: An advanced math- and engineering-oriented command-line calculator
