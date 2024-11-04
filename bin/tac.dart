@@ -14,6 +14,8 @@ void main(List<String> args) async {
   final options = argsParser.parse(args);
   final color = options['color'] == true;
   final printAst = options['print-ast'] == true;
+  final colorBackground = options['background-color'] == true;
+
   if (options['help'] == true) {
     stdout.writeln(argsParser.usage);
     return;
@@ -26,11 +28,20 @@ void main(List<String> args) async {
   } else if (options['hot-reload'] == true) {
     final reloader = await HotReloader.create();
     stdout.writeln('HotReloader listening.');
-    await runRepl(color: color, printAst: printAst, reloader: reloader);
+    await runRepl(
+      color: color,
+      printAst: printAst,
+      colorBackground: colorBackground,
+      reloader: reloader,
+    );
     await reloader.stop();
     stdout.writeln('HotReloader stopped.');
   } else {
-    await runRepl(color: color, printAst: printAst);
+    await runRepl(
+      color: color,
+      colorBackground: colorBackground,
+      printAst: printAst,
+    );
   }
 }
 
@@ -51,6 +62,11 @@ ArgParser getArgsParser() {
     defaultsTo: true,
   );
   argsParser.addFlag(
+    'background-color',
+    help: 'Enable background color output',
+    defaultsTo: true,
+  );
+  argsParser.addFlag(
     'print-ast',
     help: 'Print the AST of the code before running it',
   );
@@ -68,11 +84,28 @@ ArgParser getArgsParser() {
 Future<void> runRepl({
   required bool color,
   required bool printAst,
+  required bool colorBackground,
   HotReloader? reloader,
 }) async {
-  final console = MyConsole();
+  final console = MyConsole(colorBackground: colorBackground);
 
-  console.printLogo(console);
+  final logo = [
+    '                         ',
+    '████████╗ █████╗  ██████╗',
+    '╚══██╔══╝██╔══██╗██╔════╝',
+    '   ██║   ███████║██║     ',
+    '   ██║   ██╔══██║██║     ',
+    '   ██║   ██║  ██║╚██████╗',
+    '   ╚═╝   ╚═╝  ╚═╝ ╚═════╝',
+    '                         ',
+  ];
+
+  final paddingLeft = (console.width - 25) ~/ 2;
+
+  for (var i = 0; i < logo.length; i++) {
+    final line = ' ' * paddingLeft + logo[i];
+    console.writeLine(line);
+  }
   console.writeLine('TAC Advaned Calculator $appVersion');
   console.writeLine('Copyright (c) 2024 Joran Mulderij');
   console.writeLine('Type .help for help');
@@ -82,10 +115,9 @@ Future<void> runRepl({
     printAst: printAst,
     onPrint: console.writeLine,
   );
-  // String? lastInput;
   while (true) {
     console.write('> ', 0);
-    final input = console.readLine(cancelOnBreak: true);
+    final input = console.readLine();
     if (input == null) exit(0);
 
     if (input.isEmpty) continue;
@@ -118,14 +150,6 @@ Future<void> runRepl({
       }
       continue;
     }
-    // if (input.isEmpty && lastInput != null) {
-    //   input = lastInput;
-    // }
-    // final regex = RegExp(r'^(\+|-|\*|\/|%|\^|==|!=|\|\|)');
-    // if (regex.hasMatch(input) && lastInput != null) {
-    //   input = '_$input';
-    // }
-    // lastInput = input;
     try {
       final value = await tac.run(input);
       if (!input.trim().endsWith(';')) {

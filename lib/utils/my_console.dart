@@ -2,207 +2,31 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:dart_console/dart_console.dart';
-// ignore: implementation_imports
-import 'package:dart_console/src/ansi.dart';
-import 'package:tac/utils/tab_mappings.dart';
 import 'package:termlib/termlib.dart';
 
 class MyConsole {
-  MyConsole() {
-    _termLib.setTerminalTitle('TAC Advanced Calculator');
+  MyConsole({required this.colorBackground}) {
     _console.rawMode = false;
+    _termLib.setTerminalTitle('TAC Advanced Calculator');
+    stdin.lineMode = false;
+    stdin.echoMode = false;
   }
 
+  final ScrollbackBuffer _scrollbackBuffer =
+      ScrollbackBuffer(recordBlanks: false);
   final Console _console = Console();
   final TermLib _termLib = TermLib();
-  final List<ReplEntry> _replEntries = [];
-  int _activeReplEntryIndex = -1; // Increments to 0 on first readLine
-  ReplEntry get _activeReplEntry => _replEntries[_activeReplEntryIndex];
-
-  String get _currentReadingBuffer => _replEntries[_activeReplEntryIndex].input;
-  set _currentReadingBuffer(String value) =>
-      _replEntries[_activeReplEntryIndex].input = value;
-
-  Coordinate? get cursorPosition {
-    stdout.write(ansiDeviceStatusReportCursorPosition);
-    // returns a Cursor Position Report result in the form <ESC>[24;80R
-    // which we have to parse apart, unfortunately
-    var result = '';
-    var i = 0;
-
-    // avoid infinite loop if we're getting a bad result
-    while (i < 32) {
-      final readByte = stdin.readByteSync();
-
-      if (readByte == -1) break; // headless console may not report back
-
-      // ignore: use_string_buffers
-      result += String.fromCharCode(readByte);
-      if (result.endsWith('R')) break;
-      i++;
-    }
-
-    if (result.isEmpty) {
-      return null;
-    }
-
-    if (result.contains('\x1b')) {
-      result = result.substring(result.indexOf('\x1b'));
-    } else {
-      throw Exception();
-    }
-
-    result = result.substring(2, result.length - 1);
-    final coords = result.split(';');
-
-    if (coords.length != 2) {
-      return null;
-    }
-    if ((int.tryParse(coords[0]) != null) &&
-        (int.tryParse(coords[1]) != null)) {
-      return Coordinate(int.parse(coords[0]) - 1, int.parse(coords[1]) - 1);
-    } else {
-      print(' coords[0]: ${coords[0]}   coords[1]: ${coords[1]}');
-      return null;
-    }
-  }
-
-  String? readLine({
-    bool cancelOnBreak = false,
-    bool cancelOnEscape = false,
-    bool cancelOnEOF = false,
-    void Function(String text, Key lastPressed)? callback,
-  }) {
-    _activeReplEntryIndex++;
-    _replEntries.add(ReplEntry(''));
-    var index = 0; // cursor position relative to buffer, not screen
-
-    final screenRow = cursorPosition!.row;
-    final screenColOffset = cursorPosition!.col;
-
-    final bufferMaxLength = _console.windowWidth - screenColOffset - 3;
-
-    while (true) {
-      final key = _console.readKey();
-
-      if (key.isControl) {
-        switch (key.controlChar) {
-          case ControlCharacter.enter:
-            _console.writeLine();
-            return _currentReadingBuffer;
-          case ControlCharacter.ctrlC:
-            if (cancelOnBreak) return null;
-          case ControlCharacter.escape:
-            if (cancelOnEscape) return null;
-          case ControlCharacter.backspace:
-          case ControlCharacter.ctrlH:
-            if (index > 0) {
-              _currentReadingBuffer =
-                  _currentReadingBuffer.substring(0, index - 1) +
-                      _currentReadingBuffer.substring(index);
-              index--;
-            }
-          case ControlCharacter.ctrlU:
-            _currentReadingBuffer = _currentReadingBuffer.substring(
-              index,
-              _currentReadingBuffer.length,
-            );
-            index = 0;
-          case ControlCharacter.delete:
-          case ControlCharacter.ctrlD:
-            if (index < _currentReadingBuffer.length) {
-              _currentReadingBuffer =
-                  _currentReadingBuffer.substring(0, index) +
-                      _currentReadingBuffer.substring(index + 1);
-            } else if (cancelOnEOF) {
-              return null;
-            }
-          case ControlCharacter.ctrlK:
-            _currentReadingBuffer = _currentReadingBuffer.substring(0, index);
-          case ControlCharacter.arrowLeft:
-          case ControlCharacter.ctrlB:
-            index = index > 0 ? index - 1 : index;
-          // case ControlCharacter.arrowUp:
-          //   _activeReplEntryIndex--;
-          //   if (_activeReplEntryIndex < 0) {
-          //     _activeReplEntryIndex = 0;
-          //     continue;
-          //   }
-          //   screenRow -= _activeReplEntry.lines;
-          //   _termLib.moveUp(_activeReplEntry.lines);
-          // case ControlCharacter.arrowDown:
-          //   _console.write(_activeReplEntry.lines);
-          case ControlCharacter.arrowRight:
-          case ControlCharacter.ctrlF:
-            index = index < _currentReadingBuffer.length ? index + 1 : index;
-          case ControlCharacter.wordLeft:
-            if (index > 0) {
-              final bufferLeftOfCursor =
-                  _currentReadingBuffer.substring(0, index - 1);
-              final lastSpace = bufferLeftOfCursor.lastIndexOf(' ');
-              index = lastSpace != -1 ? lastSpace + 1 : 0;
-            }
-          case ControlCharacter.wordRight:
-            if (index < _currentReadingBuffer.length) {
-              final bufferRightOfCursor =
-                  _currentReadingBuffer.substring(index + 1);
-              final nextSpace = bufferRightOfCursor.indexOf(' ');
-              index = nextSpace != -1
-                  ? math.min(
-                      index + nextSpace + 2,
-                      _currentReadingBuffer.length,
-                    )
-                  : _currentReadingBuffer.length;
-            }
-          case ControlCharacter.home:
-          case ControlCharacter.ctrlA:
-            index = 0;
-          case ControlCharacter.end:
-          case ControlCharacter.ctrlE:
-            index = _currentReadingBuffer.length;
-          case ControlCharacter.tab:
-            for (final entry in tabMappings) {
-              if (_currentReadingBuffer.endsWith(entry.$1)) {
-                _currentReadingBuffer = _currentReadingBuffer.substring(
-                  0,
-                  _currentReadingBuffer.length - entry.$1.length,
-                );
-                _currentReadingBuffer += entry.$2;
-                index += entry.$2.length - entry.$1.length;
-                break;
-              }
-            }
-          // ignore: no_default_cases
-          default:
-            break;
-        }
-      } else {
-        if (_currentReadingBuffer.length < bufferMaxLength) {
-          if (index == _currentReadingBuffer.length) {
-            _currentReadingBuffer += key.char;
-            index++;
-          } else {
-            _currentReadingBuffer = _currentReadingBuffer.substring(0, index) +
-                key.char +
-                _currentReadingBuffer.substring(index);
-            index++;
-          }
-        }
-      }
-
-      _console.cursorPosition = Coordinate(screenRow, screenColOffset);
-      _console.eraseCursorToEnd();
-      write(
-        _currentReadingBuffer,
-        screenColOffset,
-      ); // allow for backspace condition
-      _console.cursorPosition = Coordinate(screenRow, screenColOffset + index);
-
-      if (callback != null) callback(_currentReadingBuffer, key);
-    }
-  }
+  final bool colorBackground;
 
   void write(String text, int col) {
+    if (colorBackground) {
+      writeColorBackground(text, col);
+    } else {
+      stdout.write(text);
+    }
+  }
+
+  void writeColorBackground(String text, int col) {
     final trailingSpaces = _console.windowWidth - text.length - col;
     if (trailingSpaces < 0) {
       throw Exception('Text too long to fit on screen');
@@ -214,74 +38,128 @@ class MyConsole {
       final r = (purpleRGB.$1 * t).round();
       final g = (purpleRGB.$2 * t).round();
       final b = (purpleRGB.$3 * t).round();
-      _console.write('\x1B[48;2;$r;$g;${b}m${newText[i]}\x1B[0m');
+      stdout.write('\x1B[48;2;$r;$g;${b}m${newText[i]}\x1B[0m');
     }
     _termLib.moveLeft(trailingSpaces - 1);
   }
 
-  void writeLine([String text = '']) {
+  void writeNewLine() {
+    stdout.writeln();
+  }
+
+  void writeLine(String text) {
     write(text, 0);
-    _console.writeLine();
-    if (_activeReplEntryIndex != -1) {
-      _replEntries[_activeReplEntryIndex].lines++;
-    }
+    stdout.writeln();
   }
 
   void clear() {
-    // TODO
-    // _replEntries.clear();
-    // _replEntries.add(ReplEntry('', []));
+    _termLib.eraseClear();
   }
 
-  void printLogo(MyConsole console) {
-    final logo = [
-      '                         ',
-      '████████╗ █████╗  ██████╗',
-      '╚══██╔══╝██╔══██╗██╔════╝',
-      '   ██║   ███████║██║     ',
-      '   ██║   ██╔══██║██║     ',
-      '   ██║   ██║  ██║╚██████╗',
-      '   ╚═╝   ╚═╝  ╚═╝ ╚═════╝',
-      '                         ',
-    ];
+  String? readLine() {
+    var buffer = '';
+    var index = 0; // cursor position relative to buffer, not screen
 
-    final paddingLeft = (_console.windowWidth - 25) ~/ 2;
+    final screenRow = _console.cursorPosition!.row;
+    final screenColOffset = _console.cursorPosition!.col;
 
-    for (var i = 0; i < logo.length; i++) {
-      final line = ' ' * paddingLeft + logo[i];
-      console.writeLine(line);
+    final bufferMaxLength = width - screenColOffset - 3;
+
+    while (true) {
+      final key = _console.readKey();
+
+      if (key.isControl) {
+        switch (key.controlChar) {
+          case ControlCharacter.enter:
+            _scrollbackBuffer.add(buffer);
+            writeNewLine();
+            return buffer;
+          case ControlCharacter.ctrlC:
+            return null;
+          // case ControlCharacter.escape:
+          case ControlCharacter.backspace:
+          case ControlCharacter.ctrlH:
+            if (index > 0) {
+              buffer = buffer.substring(0, index - 1) + buffer.substring(index);
+              index--;
+            }
+          case ControlCharacter.ctrlU:
+            buffer = buffer.substring(index, buffer.length);
+            index = 0;
+          case ControlCharacter.delete:
+          case ControlCharacter.ctrlD:
+            if (index < buffer.length) {
+              buffer = buffer.substring(0, index) + buffer.substring(index + 1);
+            }
+          case ControlCharacter.ctrlK:
+            buffer = buffer.substring(0, index);
+          case ControlCharacter.arrowLeft:
+          case ControlCharacter.ctrlB:
+            index = index > 0 ? index - 1 : index;
+          case ControlCharacter.arrowUp:
+            buffer = _scrollbackBuffer.up(buffer);
+            index = buffer.length;
+          case ControlCharacter.arrowDown:
+            final temp = _scrollbackBuffer.down();
+            if (temp != null) {
+              buffer = temp;
+              index = buffer.length;
+            }
+          case ControlCharacter.arrowRight:
+          case ControlCharacter.ctrlF:
+            index = index < buffer.length ? index + 1 : index;
+          case ControlCharacter.wordLeft:
+            if (index > 0) {
+              final bufferLeftOfCursor = buffer.substring(0, index - 1);
+              final lastSpace = bufferLeftOfCursor.lastIndexOf(' ');
+              index = lastSpace != -1 ? lastSpace + 1 : 0;
+            }
+          case ControlCharacter.wordRight:
+            if (index < buffer.length) {
+              final bufferRightOfCursor = buffer.substring(index + 1);
+              final nextSpace = bufferRightOfCursor.indexOf(' ');
+              index = nextSpace != -1
+                  ? math.min(index + nextSpace + 2, buffer.length)
+                  : buffer.length;
+            }
+          case ControlCharacter.home:
+          case ControlCharacter.ctrlA:
+            index = 0;
+          case ControlCharacter.end:
+          case ControlCharacter.ctrlE:
+            index = buffer.length;
+          // ignore: no_default_cases
+          default:
+            break;
+        }
+      } else {
+        if (buffer.length < bufferMaxLength) {
+          if (index == buffer.length) {
+            buffer += key.char;
+            index++;
+          } else {
+            buffer =
+                buffer.substring(0, index) + key.char + buffer.substring(index);
+            index++;
+          }
+        }
+      }
+
+      _console.cursorPosition = Coordinate(screenRow, screenColOffset);
+      _console.eraseCursorToEnd();
+      write(buffer, screenColOffset); // allow for backspace condition
+      _console.cursorPosition = Coordinate(screenRow, screenColOffset + index);
     }
   }
+
+  int get width => _console.windowWidth;
 }
 
-class ReplEntry {
-  ReplEntry(this.input);
-
-  String input;
-  int lines = 1;
+abstract class ConsoleWriter {
+  void write(String text, int col);
 }
 
-// abstract class Renderable {
-//   int numberOfLines(int width);
-
-//   List<String> lines(int width);
-// }
-
-// class RenderableString implements Renderable {
-//   RenderableString(this.text);
-
-//   final String text;
-
-//   @override
-//   int numberOfLines(int width) {
-//     return text.split('\n').fold<int>(0, (prev, line) {
-//       return prev + (line.length / width).ceil();
-//     });
-//   }
-
-//   @override
-//   List<String> lines(int width) {
-//     // TODO: handle long lines
-//     return text.split('\n').where((line) => line.isNotEmpty).toList();
-//   }
-// }
+class GradientBackgroundConsoleWriter implements ConsoleWriter {
+  @override
+  void write(String text, int col) {}
+}

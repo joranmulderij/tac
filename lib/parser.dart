@@ -3,6 +3,7 @@ import 'package:tac/ast/ast.dart';
 import 'package:tac/number/number.dart';
 import 'package:tac/units/unitset.dart';
 import 'package:tac/utils/errors.dart';
+import 'package:tac/utils/greek_letter.dart';
 
 final _parser = _createParser();
 
@@ -67,6 +68,7 @@ Parser<Token<LinesExpr>> _createParser() {
     letter(),
     char('_'),
     char('π'),
+    greekLetter(),
   ].toChoiceParser();
   final variable = (variableLetter & (variableLetter | digit()).star())
       .flatten()
