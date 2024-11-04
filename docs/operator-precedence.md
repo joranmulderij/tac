@@ -16,13 +16,13 @@
 | 6          | `==`     | Equal             | `a == b`      | Left to Right |
 | 6          | `!=`     | Not Equal         | `a != b`      | Left to Right |
 | 5          | `&&`     | Logical AND       | `a && b`      | Left to Right |
-| 4          | `\|\|`   | Logical OR        | `a \|\| b`    | Left to Right |
+| 4          | `||`     | Logical OR        | `a || b`      | Left to Right |
 | 3          | `=`      | Assignment        | `a = b`       | Right to Left |
 | 3          | `+=`     | Addition Assignment | `a += b`    | Right to Left |
 | 3          | `-=`     | Subtraction Assignment | `a -= b` | Right to Left |
 | 3          | `*=`     | Multiplication Assignment | `a *= b` | Right to Left |
 | 3          | `/=`     | Division Assignment | `a /= b`    | Right to Left |
-| 2          | `\|`     | Pipe              | `a | b`       | Left to Right |
-| 2          | `\|?`    | Pipe-Where        | `a |? b`      | Left to Right |
+| 2          | `|`      | Pipe              | `a | b`       | Left to Right |
+| 2          | `|?`     | Pipe-Where        | `a |? b`      | Left to Right |
 | 2          | `->`     | Unit Convert      | `a -> b`      | Left to Right |
 | 1          | `=>`     | Function Create   | `a => b`      | Right to Left |
