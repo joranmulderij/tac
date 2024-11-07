@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:dart_console/dart_console.dart';
 import 'package:termlib/termlib.dart';
+import 'package:termunicode/termunicode.dart';
 
 class MyConsole {
   MyConsole({required this.colorBackground}) {
@@ -22,19 +24,25 @@ class MyConsole {
     if (colorBackground) {
       writeColorBackground(text, col);
     } else {
+      final trailingSpaces = _console.windowWidth - widthString(text) - col;
+      if (trailingSpaces < 0) {
+        throw Exception('Text too long to fit on screen');
+      }
       stdout.write(text);
     }
   }
 
   void writeColorBackground(String text, int col) {
-    final trailingSpaces = _console.windowWidth - text.length - col;
+    final trailingSpaces = _console.windowWidth - widthString(text) - col;
+    // print(widthString(text));
     if (trailingSpaces < 0) {
       throw Exception('Text too long to fit on screen');
     }
     final newText = text + ' ' * trailingSpaces;
     for (var i = 0; i < newText.length; i++) {
       const purpleRGB = (92, 12, 108);
-      final t = (i + col) / newText.length;
+      final offset = widthString(newText.substring(0, i)) + col;
+      final t = offset / widthString(newText);
       final r = (purpleRGB.$1 * t).round();
       final g = (purpleRGB.$2 * t).round();
       final b = (purpleRGB.$3 * t).round();
@@ -58,6 +66,7 @@ class MyConsole {
 
   String? readLine() {
     var buffer = '';
+    var unicodeBuffer = '';
     var index = 0; // cursor position relative to buffer, not screen
 
     final screenRow = _console.cursorPosition!.row;
@@ -134,21 +143,33 @@ class MyConsole {
         }
       } else {
         if (buffer.length < bufferMaxLength) {
-          if (index == buffer.length) {
-            buffer += key.char;
-            index++;
-          } else {
-            buffer =
-                buffer.substring(0, index) + key.char + buffer.substring(index);
-            index++;
+          try {
+            final char = utf8.decode((unicodeBuffer + key.char).codeUnits);
+            unicodeBuffer = '';
+            if (index == widthString(buffer)) {
+              buffer += char;
+              index++;
+            } else {
+              buffer =
+                  buffer.substring(0, index) + char + buffer.substring(index);
+              index++;
+            }
+          } on FormatException {
+            unicodeBuffer += key.char;
           }
         }
       }
 
+      // print(utf8.decode(buffer.codeUnits));
+      // buffer = String.(buffer);
+      // print(buffer.codeUnits);
+
       _console.cursorPosition = Coordinate(screenRow, screenColOffset);
       _console.eraseCursorToEnd();
       write(buffer, screenColOffset); // allow for backspace condition
-      _console.cursorPosition = Coordinate(screenRow, screenColOffset + index);
+      final cursorOffset = widthString(buffer.substring(0, index));
+      _console.cursorPosition =
+          Coordinate(screenRow, screenColOffset + cursorOffset);
     }
   }
 

@@ -4,7 +4,7 @@
 
 TAC stands for "TAC Advanced Calculator". It is a command line calculator geared towards scientific and engineering applications.
 
-## Features
+## Defining Features
 
 - Infinite precision numbers
 - Units
@@ -16,7 +16,7 @@ TAC stands for "TAC Advanced Calculator". It is a command line calculator geared
 
 The basic syntax of TAC is very intuitive:
 
-```tac
+```javascript
 > 1 + 2
 3
 > 3 * 4
@@ -31,7 +31,7 @@ The basic syntax of TAC is very intuitive:
 
 Units are stored as part of numbers and vectors. Units can be attached to numbers using square brackets. The exponent of the unit can be added directly after the unit.
 
-```tac
+```javascript
 > 1[meter]
 1[m]
 > 1[m] + 2[m]
@@ -42,15 +42,22 @@ Units are stored as part of numbers and vectors. Units can be attached to number
 1[m s-1]
 ```
 
-### Unit operations
-
 Numbers with units can be multiplied. Then the units are handled automatically.
 
-```tac
-> 1[m] * 2[m]
-2[m^2]
-> 1[m] * 2[m s-1]
-2[m s-1]
+```javascript
+> 1m * 2m
+2[m2]
+> 1m * 2m s^-1
+2[m2 s-1]
+```
+
+They can also be converted to other units with equal dimensions.
+
+```javascript
+> 1[m] -> [cm]
+100[cm]
+> 1[m] -> [km]
+0.001[km]
 ```
 
 ## Variables

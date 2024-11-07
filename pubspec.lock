@@ -426,6 +426,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.0"
+  termunicode:
+    dependency: "direct main"
+    description:
+      name: termunicode
+      sha256: f43738e36806dbd4f7490755967913ee1382d9eedf23068d01d8988809ffab7a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   test:
     dependency: "direct dev"
     description:

@@ -25,6 +25,7 @@ dependencies:
   rational: ^2.2.2
   termlib: ^0.4.0
   termparser: ^0.3.0
+  termunicode: ^0.1.0
   win32: ^5.5.4
 
 dev_dependencies:
